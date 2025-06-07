@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { ScrollView, View, Text, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
+import React, { useState, useRef, useEffect } from 'react';
+import { ScrollView, View, Text, StyleSheet, TouchableOpacity, Dimensions, Platform } from 'react-native';
 import { Image } from 'expo-image';
 import { useUserStore } from '@/store/user-store';
 import { healthMilestones } from '@/constants/achievements';
 import { useThemeColors } from '@/constants/colors';
-import { Heart, Wind, Brain, Activity, ArrowRight, Info, Clock, Droplet, Shield, Zap } from 'lucide-react-native';
+import { Heart, Wind, Brain, Activity, ArrowRight, Info, Clock, Droplet, Shield, Zap, ChevronRight } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -15,6 +15,8 @@ export default function HealthProgressScreen() {
   const totalDays = smokeFreeTime.days;
   
   const [selectedSystem, setSelectedSystem] = useState<string>('respiratory');
+  const scrollViewRef = useRef<ScrollView>(null);
+  const [showScrollIndicator, setShowScrollIndicator] = useState(true);
   
   // Filter milestones to show all achieved and upcoming
   const sortedMilestones = [...healthMilestones].sort((a, b) => a.days - b.days);
@@ -605,6 +607,27 @@ export default function HealthProgressScreen() {
     }
     return `Day ${day}`;
   };
+
+  // Auto-scroll to show selected system button
+  useEffect(() => {
+    if (scrollViewRef.current) {
+      // Find the index of the selected system
+      const systems = Object.keys(healthSystems);
+      const selectedIndex = systems.indexOf(selectedSystem);
+      
+      // Calculate approximate scroll position (each button is ~130px wide with margins)
+      const buttonWidth = 130 + 12; // minWidth + marginRight
+      const scrollPosition = selectedIndex * buttonWidth;
+      
+      // Scroll to position with animation
+      scrollViewRef.current.scrollTo({ x: scrollPosition, animated: true });
+    }
+  }, [selectedSystem]);
+
+  // Systems to display in the first row (most important)
+  const primarySystems = ['respiratory', 'cardiovascular', 'psychological', 'nervous'];
+  // Systems to display in the second row
+  const secondarySystems = ['immune', 'digestive', 'endocrine', 'general'];
   
   return (
     <ScrollView 
@@ -640,194 +663,126 @@ export default function HealthProgressScreen() {
       <View style={[styles.systemSelectorCard, { backgroundColor: colors.card }]}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Body Systems Recovery</Text>
         
+        {/* Visual indicator that there are more options to scroll */}
+        {showScrollIndicator && (
+          <View style={styles.scrollIndicator}>
+            <Text style={[styles.scrollText, { color: colors.textSecondary }]}>Scroll to see more</Text>
+            <ChevronRight size={16} color={colors.textSecondary} />
+          </View>
+        )}
+        
+        {/* Primary systems row */}
         <ScrollView 
+          ref={scrollViewRef}
           horizontal 
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.systemButtonsContainer}
+          onScroll={() => setShowScrollIndicator(false)}
+          scrollEventThrottle={16}
         >
-          {/* Respiratory button */}
-          <TouchableOpacity 
-            style={[
-              styles.systemButton, 
-              { backgroundColor: selectedSystem === 'respiratory' ? colors.primary : colors.background, 
-                borderColor: selectedSystem === 'respiratory' ? colors.primary : colors.progressBackground }
-            ]}
-            onPress={() => setSelectedSystem('respiratory')}
-          >
-            <Wind 
-              size={24} 
-              color={selectedSystem === 'respiratory' ? colors.background : colors.primary} 
-            />
-            <Text 
+          {primarySystems.map((system) => (
+            <TouchableOpacity 
+              key={system}
               style={[
-                styles.systemButtonText,
-                { color: selectedSystem === 'respiratory' ? colors.background : colors.text }
+                styles.systemButton, 
+                { 
+                  backgroundColor: selectedSystem === system 
+                    ? (system === 'psychological' ? colors.psychological : colors.primary) 
+                    : colors.background, 
+                  borderColor: selectedSystem === system 
+                    ? (system === 'psychological' ? colors.psychological : colors.primary) 
+                    : colors.progressBackground 
+                }
               ]}
+              onPress={() => setSelectedSystem(system)}
             >
-              Respiratory
-            </Text>
-          </TouchableOpacity>
+              {system === 'respiratory' && (
+                <Wind 
+                  size={20} 
+                  color={selectedSystem === system ? colors.background : (system === 'psychological' ? colors.psychological : colors.primary)} 
+                />
+              )}
+              {system === 'cardiovascular' && (
+                <Heart 
+                  size={20} 
+                  color={selectedSystem === system ? colors.background : (system === 'psychological' ? colors.psychological : colors.primary)} 
+                />
+              )}
+              {system === 'psychological' && (
+                <Zap 
+                  size={20} 
+                  color={selectedSystem === system ? colors.background : colors.psychological} 
+                />
+              )}
+              {system === 'nervous' && (
+                <Brain 
+                  size={20} 
+                  color={selectedSystem === system ? colors.background : colors.primary} 
+                />
+              )}
+              <Text 
+                style={[
+                  styles.systemButtonText,
+                  { 
+                    color: selectedSystem === system 
+                      ? colors.background 
+                      : (system === 'psychological' ? colors.psychological : colors.text) 
+                  }
+                ]}
+                numberOfLines={1}
+              >
+                {healthSystems[system as keyof typeof healthSystems].title.split(' ')[0]}
+              </Text>
+            </TouchableOpacity>
+          ))}
           
-          {/* Cardiovascular button */}
-          <TouchableOpacity 
-            style={[
-              styles.systemButton, 
-              { backgroundColor: selectedSystem === 'cardiovascular' ? colors.primary : colors.background, 
-                borderColor: selectedSystem === 'cardiovascular' ? colors.primary : colors.progressBackground }
-            ]}
-            onPress={() => setSelectedSystem('cardiovascular')}
-          >
-            <Heart 
-              size={24} 
-              color={selectedSystem === 'cardiovascular' ? colors.background : colors.primary} 
-            />
-            <Text 
+          {secondarySystems.map((system) => (
+            <TouchableOpacity 
+              key={system}
               style={[
-                styles.systemButtonText,
-                { color: selectedSystem === 'cardiovascular' ? colors.background : colors.text }
+                styles.systemButton, 
+                { 
+                  backgroundColor: selectedSystem === system ? colors.primary : colors.background, 
+                  borderColor: selectedSystem === system ? colors.primary : colors.progressBackground 
+                }
               ]}
+              onPress={() => setSelectedSystem(system)}
             >
-              Cardiovascular
-            </Text>
-          </TouchableOpacity>
-          
-          {/* Psychological button - Moved up in the list for better visibility */}
-          <TouchableOpacity 
-            style={[
-              styles.systemButton, 
-              { backgroundColor: selectedSystem === 'psychological' ? colors.psychological : colors.background, 
-                borderColor: selectedSystem === 'psychological' ? colors.psychological : colors.progressBackground }
-            ]}
-            onPress={() => setSelectedSystem('psychological')}
-          >
-            <Zap 
-              size={24} 
-              color={selectedSystem === 'psychological' ? colors.background : colors.psychological} 
-            />
-            <Text 
-              style={[
-                styles.systemButtonText,
-                { color: selectedSystem === 'psychological' ? colors.background : colors.text }
-              ]}
-            >
-              Psychological
-            </Text>
-          </TouchableOpacity>
-          
-          {/* Nervous system button */}
-          <TouchableOpacity 
-            style={[
-              styles.systemButton, 
-              { backgroundColor: selectedSystem === 'nervous' ? colors.primary : colors.background, 
-                borderColor: selectedSystem === 'nervous' ? colors.primary : colors.progressBackground }
-            ]}
-            onPress={() => setSelectedSystem('nervous')}
-          >
-            <Brain 
-              size={24} 
-              color={selectedSystem === 'nervous' ? colors.background : colors.primary} 
-            />
-            <Text 
-              style={[
-                styles.systemButtonText,
-                { color: selectedSystem === 'nervous' ? colors.background : colors.text }
-              ]}
-            >
-              Nervous
-            </Text>
-          </TouchableOpacity>
-          
-          {/* Immune system button */}
-          <TouchableOpacity 
-            style={[
-              styles.systemButton, 
-              { backgroundColor: selectedSystem === 'immune' ? colors.primary : colors.background, 
-                borderColor: selectedSystem === 'immune' ? colors.primary : colors.progressBackground }
-            ]}
-            onPress={() => setSelectedSystem('immune')}
-          >
-            <Shield 
-              size={24} 
-              color={selectedSystem === 'immune' ? colors.background : colors.primary} 
-            />
-            <Text 
-              style={[
-                styles.systemButtonText,
-                { color: selectedSystem === 'immune' ? colors.background : colors.text }
-              ]}
-            >
-              Immune
-            </Text>
-          </TouchableOpacity>
-          
-          {/* Digestive system button */}
-          <TouchableOpacity 
-            style={[
-              styles.systemButton, 
-              { backgroundColor: selectedSystem === 'digestive' ? colors.primary : colors.background, 
-                borderColor: selectedSystem === 'digestive' ? colors.primary : colors.progressBackground }
-            ]}
-            onPress={() => setSelectedSystem('digestive')}
-          >
-            <Droplet 
-              size={24} 
-              color={selectedSystem === 'digestive' ? colors.background : colors.primary} 
-            />
-            <Text 
-              style={[
-                styles.systemButtonText,
-                { color: selectedSystem === 'digestive' ? colors.background : colors.text }
-              ]}
-            >
-              Digestive
-            </Text>
-          </TouchableOpacity>
-          
-          {/* Hormonal system button */}
-          <TouchableOpacity 
-            style={[
-              styles.systemButton, 
-              { backgroundColor: selectedSystem === 'endocrine' ? colors.primary : colors.background, 
-                borderColor: selectedSystem === 'endocrine' ? colors.primary : colors.progressBackground }
-            ]}
-            onPress={() => setSelectedSystem('endocrine')}
-          >
-            <Clock 
-              size={24} 
-              color={selectedSystem === 'endocrine' ? colors.background : colors.primary} 
-            />
-            <Text 
-              style={[
-                styles.systemButtonText,
-                { color: selectedSystem === 'endocrine' ? colors.background : colors.text }
-              ]}
-            >
-              Hormonal
-            </Text>
-          </TouchableOpacity>
-          
-          {/* Overall health button */}
-          <TouchableOpacity 
-            style={[
-              styles.systemButton, 
-              { backgroundColor: selectedSystem === 'general' ? colors.primary : colors.background, 
-                borderColor: selectedSystem === 'general' ? colors.primary : colors.progressBackground }
-            ]}
-            onPress={() => setSelectedSystem('general')}
-          >
-            <Activity 
-              size={24} 
-              color={selectedSystem === 'general' ? colors.background : colors.primary} 
-            />
-            <Text 
-              style={[
-                styles.systemButtonText,
-                { color: selectedSystem === 'general' ? colors.background : colors.text }
-              ]}
-            >
-              Overall
-            </Text>
-          </TouchableOpacity>
+              {system === 'immune' && (
+                <Shield 
+                  size={20} 
+                  color={selectedSystem === system ? colors.background : colors.primary} 
+                />
+              )}
+              {system === 'digestive' && (
+                <Droplet 
+                  size={20} 
+                  color={selectedSystem === system ? colors.background : colors.primary} 
+                />
+              )}
+              {system === 'endocrine' && (
+                <Clock 
+                  size={20} 
+                  color={selectedSystem === system ? colors.background : colors.primary} 
+                />
+              )}
+              {system === 'general' && (
+                <Activity 
+                  size={20} 
+                  color={selectedSystem === system ? colors.background : colors.primary} 
+                />
+              )}
+              <Text 
+                style={[
+                  styles.systemButtonText,
+                  { color: selectedSystem === system ? colors.background : colors.text }
+                ]}
+                numberOfLines={1}
+              >
+                {healthSystems[system as keyof typeof healthSystems].title.split(' ')[0]}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </ScrollView>
       </View>
       
@@ -1050,6 +1005,23 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
+    position: 'relative',
+  },
+  scrollIndicator: {
+    position: 'absolute',
+    right: 16,
+    top: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    zIndex: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  scrollText: {
+    fontSize: 12,
+    marginRight: 4,
   },
   sectionTitle: {
     fontSize: 18,
@@ -1058,22 +1030,27 @@ const styles = StyleSheet.create({
   },
   systemButtonsContainer: {
     paddingVertical: 8,
-    paddingRight: 16, // Add extra padding to ensure all buttons are visible
+    paddingRight: 16,
   },
   systemButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     borderRadius: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     paddingVertical: 10,
-    marginRight: 12,
+    marginRight: 8,
     borderWidth: 1,
-    minWidth: 130, // Set minimum width to ensure text fits
+    // Adjust width for better mobile display
+    minWidth: Platform.OS === 'web' ? 130 : 110,
+    maxWidth: Platform.OS === 'web' ? 150 : 120,
   },
   systemButtonText: {
     fontSize: 14,
     fontWeight: '500',
-    marginLeft: 8,
+    marginLeft: 6,
+    // Ensure text doesn't overflow
+    flexShrink: 1,
   },
   systemDetailsCard: {
     borderRadius: 16,
