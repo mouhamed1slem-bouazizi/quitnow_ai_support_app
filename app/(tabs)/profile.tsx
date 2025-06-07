@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Modal, Platform, Switch, useColorScheme, Pressable } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Modal, Platform, Switch, useColorScheme, Pressable, Alert } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useUserStore } from '@/store/user-store';
 import { useThemeColors } from '@/constants/colors';
@@ -69,8 +69,8 @@ export default function ProfileScreen() {
     
     // Only update if a date was actually selected
     if (selectedDate && event.type === 'set') {
-      // Update date while preserving time
-      const newDate = new Date(resetQuitDate);
+      // Create a new date object to avoid reference issues
+      const newDate = new Date(resetQuitDate.getTime());
       newDate.setFullYear(selectedDate.getFullYear());
       newDate.setMonth(selectedDate.getMonth());
       newDate.setDate(selectedDate.getDate());
@@ -86,8 +86,8 @@ export default function ProfileScreen() {
     
     // Only update if a time was actually selected
     if (selectedTime && event.type === 'set') {
-      // Update time while preserving date
-      const newDate = new Date(resetQuitDate);
+      // Create a new date object to avoid reference issues
+      const newDate = new Date(resetQuitDate.getTime());
       newDate.setHours(selectedTime.getHours());
       newDate.setMinutes(selectedTime.getMinutes());
       setResetQuitDate(newDate);
@@ -394,6 +394,7 @@ export default function ProfileScreen() {
                   onChange={handleDateChange}
                   style={styles.iosPicker}
                   maximumDate={new Date()}
+                  themeVariant={colors.theme === 'dark' ? 'dark' : 'light'}
                 />
               </View>
             </View>
@@ -423,6 +424,7 @@ export default function ProfileScreen() {
                   display="spinner"
                   onChange={handleTimeChange}
                   style={styles.iosPicker}
+                  themeVariant={colors.theme === 'dark' ? 'dark' : 'light'}
                 />
               </View>
             </View>
