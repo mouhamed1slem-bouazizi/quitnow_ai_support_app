@@ -22,7 +22,10 @@ export default function ProfileScreen() {
   
   // Reset date selection
   const [showResetModal, setShowResetModal] = useState(false);
-  const [resetQuitDate, setResetQuitDate] = useState(new Date());
+  // Set default reset date to yesterday
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const [resetQuitDate, setResetQuitDate] = useState(yesterday);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   
@@ -40,7 +43,8 @@ export default function ProfileScreen() {
   
   const handleReset = () => {
     setShowResetModal(true);
-    setResetQuitDate(new Date());
+    // Initialize with yesterday's date
+    setResetQuitDate(yesterday);
   };
   
   const confirmReset = () => {

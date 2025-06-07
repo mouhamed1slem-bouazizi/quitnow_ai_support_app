@@ -50,8 +50,13 @@ export function useThemeColors() {
   
   // Determine which theme to use
   const effectiveTheme = theme === 'system' ? systemColorScheme : theme;
+  const colors = effectiveTheme === 'dark' ? darkColors : lightColors;
   
-  return effectiveTheme === 'dark' ? darkColors : lightColors;
+  // Add theme property to the returned colors object
+  return {
+    ...colors,
+    theme: effectiveTheme || 'light'
+  };
 }
 
 // Export default colors object for backward compatibility

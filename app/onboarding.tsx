@@ -12,11 +12,15 @@ export default function OnboardingScreen() {
   const colors = useThemeColors();
   const { setProfile, setOnboarded } = useUserStore();
   
+  // Set default quit date to yesterday
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  
   const [name, setName] = useState('');
   const [cigarettesPerDay, setCigarettesPerDay] = useState('20');
   const [cigarettePrice, setCigarettePrice] = useState('10');
   const [currency, setCurrency] = useState('USD');
-  const [quitDate, setQuitDate] = useState(new Date());
+  const [quitDate, setQuitDate] = useState(yesterday);
   const [step, setStep] = useState(1);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
