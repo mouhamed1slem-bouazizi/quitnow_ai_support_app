@@ -49,8 +49,6 @@ export default function OnboardingScreen() {
   };
   
   const handleDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
-    const currentDate = selectedDate || quitDate;
-    
     if (Platform.OS === 'android') {
       setShowDatePicker(false);
     }
@@ -58,16 +56,14 @@ export default function OnboardingScreen() {
     if (selectedDate) {
       // Create a new date object with the selected date but keep the current time
       const newDate = new Date(quitDate);
-      newDate.setFullYear(currentDate.getFullYear());
-      newDate.setMonth(currentDate.getMonth());
-      newDate.setDate(currentDate.getDate());
+      newDate.setFullYear(selectedDate.getFullYear());
+      newDate.setMonth(selectedDate.getMonth());
+      newDate.setDate(selectedDate.getDate());
       setQuitDate(newDate);
     }
   };
   
   const handleTimeChange = (event: DateTimePickerEvent, selectedTime?: Date) => {
-    const currentTime = selectedTime || quitDate;
-    
     if (Platform.OS === 'android') {
       setShowTimePicker(false);
     }
@@ -75,8 +71,8 @@ export default function OnboardingScreen() {
     if (selectedTime) {
       // Create a new date object with the current date but selected time
       const newDate = new Date(quitDate);
-      newDate.setHours(currentTime.getHours());
-      newDate.setMinutes(currentTime.getMinutes());
+      newDate.setHours(selectedTime.getHours());
+      newDate.setMinutes(selectedTime.getMinutes());
       setQuitDate(newDate);
     }
   };
@@ -94,6 +90,14 @@ export default function OnboardingScreen() {
       hour: '2-digit',
       minute: '2-digit',
     });
+  };
+  
+  const openDatePicker = () => {
+    setShowDatePicker(true);
+  };
+  
+  const openTimePicker = () => {
+    setShowTimePicker(true);
   };
   
   return (
@@ -266,7 +270,7 @@ export default function OnboardingScreen() {
                     styles.dateTimeButton, 
                     { backgroundColor: colors.background, borderColor: colors.inactive }
                   ]}
-                  onPress={() => setShowDatePicker(true)}
+                  onPress={openDatePicker}
                 >
                   <Calendar size={20} color={colors.primary} style={styles.dateTimeIcon} />
                   <Text style={[styles.dateTimeText, { color: colors.text }]}>{formatDate(quitDate)}</Text>
@@ -277,7 +281,7 @@ export default function OnboardingScreen() {
                     styles.dateTimeButton, 
                     { backgroundColor: colors.background, borderColor: colors.inactive }
                   ]}
-                  onPress={() => setShowTimePicker(true)}
+                  onPress={openTimePicker}
                 >
                   <Clock size={20} color={colors.primary} style={styles.dateTimeIcon} />
                   <Text style={[styles.dateTimeText, { color: colors.text }]}>{formatTime(quitDate)}</Text>
@@ -307,29 +311,77 @@ export default function OnboardingScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
       
-      {/* Date Picker */}
+      {/* Date Picker - Platform specific rendering */}
       {showDatePicker && (
-        <DateTimePicker
-          testID="dateTimePicker"
-          value={quitDate}
-          mode="date"
-          is24Hour={true}
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={handleDateChange}
-          maximumDate={new Date()}
-        />
+        <Modal
+          visible={showDatePicker}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowDatePicker(false)}
+        >
+          <View style={styles.pickerModalOverlay}>
+            <View style={[styles.pickerModalContent, { backgroundColor: colors.card }]}>
+              <View style={styles.pickerHeader}>
+                <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                  <Text style={[styles.pickerCancel, { color: colors.textSecondary }]}>Cancel</Text>
+                </TouchableOpacity>
+                <Text style={[styles.pickerTitle, { color: colors.text }]}>Select Date</Text>
+                <TouchableOpacity 
+                  onPress={() => {
+                    setShowDatePicker(false);
+                  }}
+                >
+                  <Text style={[styles.pickerDone, { color: colors.primary }]}>Done</Text>
+                </TouchableOpacity>
+              </View>
+              <DateTimePicker
+                testID="dateTimePicker"
+                value={quitDate}
+                mode="date"
+                display="spinner"
+                onChange={handleDateChange}
+                maximumDate={new Date()}
+                style={styles.picker}
+              />
+            </View>
+          </View>
+        </Modal>
       )}
       
-      {/* Time Picker */}
+      {/* Time Picker - Platform specific rendering */}
       {showTimePicker && (
-        <DateTimePicker
-          testID="timeTimePicker"
-          value={quitDate}
-          mode="time"
-          is24Hour={false}
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={handleTimeChange}
-        />
+        <Modal
+          visible={showTimePicker}
+          transparent={true}
+          animationType="slide"
+          onRequestClose={() => setShowTimePicker(false)}
+        >
+          <View style={styles.pickerModalOverlay}>
+            <View style={[styles.pickerModalContent, { backgroundColor: colors.card }]}>
+              <View style={styles.pickerHeader}>
+                <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                  <Text style={[styles.pickerCancel, { color: colors.textSecondary }]}>Cancel</Text>
+                </TouchableOpacity>
+                <Text style={[styles.pickerTitle, { color: colors.text }]}>Select Time</Text>
+                <TouchableOpacity 
+                  onPress={() => {
+                    setShowTimePicker(false);
+                  }}
+                >
+                  <Text style={[styles.pickerDone, { color: colors.primary }]}>Done</Text>
+                </TouchableOpacity>
+              </View>
+              <DateTimePicker
+                testID="timeTimePicker"
+                value={quitDate}
+                mode="time"
+                display="spinner"
+                onChange={handleTimeChange}
+                style={styles.picker}
+              />
+            </View>
+          </View>
+        </Modal>
       )}
     </SafeAreaView>
   );
@@ -489,5 +541,39 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     marginBottom: 24,
+  },
+  pickerModalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  pickerModalContent: {
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingBottom: 30,
+  },
+  pickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
+  },
+  pickerTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  pickerCancel: {
+    fontSize: 16,
+  },
+  pickerDone: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  picker: {
+    height: 200,
+    width: '100%',
   },
 });

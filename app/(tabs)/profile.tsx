@@ -12,7 +12,7 @@ export default function ProfileScreen() {
   const { profile, updateProfile, resetProgress, theme, setTheme } = useUserStore();
   
   const [isEditing, setIsEditing] = useState(false);
-  const [editedName, setEditedName] = useState(profile?.name || '');
+  const [editedName, setEditedName] = useState(profile?.name || '");
   const [editedCigarettesPerDay, setEditedCigarettesPerDay] = useState(
     profile?.cigarettesPerDay?.toString() || '20'
   );
@@ -66,8 +66,6 @@ export default function ProfileScreen() {
   };
   
   const handleDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
-    const currentDate = selectedDate || resetQuitDate;
-    
     if (Platform.OS === 'android') {
       setShowDatePicker(false);
     }
@@ -75,16 +73,14 @@ export default function ProfileScreen() {
     if (selectedDate) {
       // Create a new date object with the selected date but keep the current time
       const newDate = new Date(resetQuitDate);
-      newDate.setFullYear(currentDate.getFullYear());
-      newDate.setMonth(currentDate.getMonth());
-      newDate.setDate(currentDate.getDate());
+      newDate.setFullYear(selectedDate.getFullYear());
+      newDate.setMonth(selectedDate.getMonth());
+      newDate.setDate(selectedDate.getDate());
       setResetQuitDate(newDate);
     }
   };
   
   const handleTimeChange = (event: DateTimePickerEvent, selectedTime?: Date) => {
-    const currentTime = selectedTime || resetQuitDate;
-    
     if (Platform.OS === 'android') {
       setShowTimePicker(false);
     }
@@ -92,8 +88,8 @@ export default function ProfileScreen() {
     if (selectedTime) {
       // Create a new date object with the current date but selected time
       const newDate = new Date(resetQuitDate);
-      newDate.setHours(currentTime.getHours());
-      newDate.setMinutes(currentTime.getMinutes());
+      newDate.setHours(selectedTime.getHours());
+      newDate.setMinutes(selectedTime.getMinutes());
       setResetQuitDate(newDate);
     }
   };
@@ -112,6 +108,14 @@ export default function ProfileScreen() {
       hour: '2-digit',
       minute: '2-digit',
     });
+  };
+  
+  const openDatePicker = () => {
+    setShowDatePicker(true);
+  };
+  
+  const openTimePicker = () => {
+    setShowTimePicker(true);
   };
   
   return (
@@ -321,7 +325,7 @@ export default function ProfileScreen() {
               <View style={styles.dateTimeContainer}>
                 <TouchableOpacity 
                   style={[styles.dateTimeButton, { backgroundColor: colors.background, borderColor: colors.inactive }]}
-                  onPress={() => setShowDatePicker(true)}
+                  onPress={openDatePicker}
                 >
                   <Calendar size={20} color={colors.primary} style={styles.dateTimeIcon} />
                   <Text style={[styles.dateTimeText, { color: colors.text }]}>
@@ -335,7 +339,7 @@ export default function ProfileScreen() {
                 
                 <TouchableOpacity 
                   style={[styles.dateTimeButton, { backgroundColor: colors.background, borderColor: colors.inactive }]}
-                  onPress={() => setShowTimePicker(true)}
+                  onPress={openTimePicker}
                 >
                   <Clock size={20} color={colors.primary} style={styles.dateTimeIcon} />
                   <Text style={[styles.dateTimeText, { color: colors.text }]}>
@@ -370,29 +374,77 @@ export default function ProfileScreen() {
           </View>
         </Modal>
         
-        {/* Date Picker */}
-        {showDatePicker && (
-          <DateTimePicker
-            testID="dateTimePicker"
-            value={resetQuitDate}
-            mode="date"
-            is24Hour={true}
-            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-            onChange={handleDateChange}
-            maximumDate={new Date()}
-          />
+        {/* Date Picker - Platform specific rendering */}
+        {(Platform.OS === 'ios' || showDatePicker) && (
+          <Modal
+            visible={showDatePicker}
+            transparent={true}
+            animationType="slide"
+            onRequestClose={() => setShowDatePicker(false)}
+          >
+            <View style={styles.pickerModalOverlay}>
+              <View style={[styles.pickerModalContent, { backgroundColor: colors.card }]}>
+                <View style={styles.pickerHeader}>
+                  <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                    <Text style={[styles.pickerCancel, { color: colors.textSecondary }]}>Cancel</Text>
+                  </TouchableOpacity>
+                  <Text style={[styles.pickerTitle, { color: colors.text }]}>Select Date</Text>
+                  <TouchableOpacity 
+                    onPress={() => {
+                      setShowDatePicker(false);
+                    }}
+                  >
+                    <Text style={[styles.pickerDone, { color: colors.primary }]}>Done</Text>
+                  </TouchableOpacity>
+                </View>
+                <DateTimePicker
+                  testID="dateTimePicker"
+                  value={resetQuitDate}
+                  mode="date"
+                  display="spinner"
+                  onChange={handleDateChange}
+                  maximumDate={new Date()}
+                  style={styles.picker}
+                />
+              </View>
+            </View>
+          </Modal>
         )}
         
-        {/* Time Picker */}
-        {showTimePicker && (
-          <DateTimePicker
-            testID="timeTimePicker"
-            value={resetQuitDate}
-            mode="time"
-            is24Hour={false}
-            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-            onChange={handleTimeChange}
-          />
+        {/* Time Picker - Platform specific rendering */}
+        {(Platform.OS === 'ios' || showTimePicker) && (
+          <Modal
+            visible={showTimePicker}
+            transparent={true}
+            animationType="slide"
+            onRequestClose={() => setShowTimePicker(false)}
+          >
+            <View style={styles.pickerModalOverlay}>
+              <View style={[styles.pickerModalContent, { backgroundColor: colors.card }]}>
+                <View style={styles.pickerHeader}>
+                  <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                    <Text style={[styles.pickerCancel, { color: colors.textSecondary }]}>Cancel</Text>
+                  </TouchableOpacity>
+                  <Text style={[styles.pickerTitle, { color: colors.text }]}>Select Time</Text>
+                  <TouchableOpacity 
+                    onPress={() => {
+                      setShowTimePicker(false);
+                    }}
+                  >
+                    <Text style={[styles.pickerDone, { color: colors.primary }]}>Done</Text>
+                  </TouchableOpacity>
+                </View>
+                <DateTimePicker
+                  testID="timeTimePicker"
+                  value={resetQuitDate}
+                  mode="time"
+                  display="spinner"
+                  onChange={handleTimeChange}
+                  style={styles.picker}
+                />
+              </View>
+            </View>
+          </Modal>
         )}
       </ScrollView>
     </>
@@ -630,5 +682,39 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+  },
+  pickerModalOverlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  pickerModalContent: {
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingBottom: 30,
+  },
+  pickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
+  },
+  pickerTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  pickerCancel: {
+    fontSize: 16,
+  },
+  pickerDone: {
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  picker: {
+    height: 200,
+    width: '100%',
   },
 });

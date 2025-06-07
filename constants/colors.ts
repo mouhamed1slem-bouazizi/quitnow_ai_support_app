@@ -45,8 +45,8 @@ const darkColors = {
 };
 
 // Define the type for the colors object including the theme property
-type ThemeColors = typeof lightColors & {
-  theme: 'light' | 'dark' | string;
+export type ThemeColors = typeof lightColors & {
+  theme: 'light' | 'dark' | 'system';
 };
 
 export function useThemeColors(): ThemeColors {
@@ -60,7 +60,7 @@ export function useThemeColors(): ThemeColors {
   // Add theme property to the returned colors object
   return {
     ...colors,
-    theme: effectiveTheme || 'light'
+    theme: theme || 'light'
   };
 }
 
