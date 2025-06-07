@@ -4,7 +4,7 @@ import { Image } from 'expo-image';
 import { useUserStore } from '@/store/user-store';
 import { healthMilestones } from '@/constants/achievements';
 import { useThemeColors } from '@/constants/colors';
-import { Heart, Wind, Brain, Activity, ArrowRight, Info, Clock, Droplet, Lungs, Shield } from 'lucide-react-native';
+import { Heart, Wind, Brain, Activity, ArrowRight, Info, Clock, Droplet, Shield } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -541,7 +541,7 @@ export default function HealthProgressScreen() {
               <View 
                 style={[
                   styles.progressBar, 
-                  { width: `${nextMilestoneProgress}%`, backgroundColor: colors.progressBar }
+                  { width: `${nextMilestoneProgress}%`, backgroundColor: colors.progressFill }
                 ]} 
               />
             </View>
@@ -566,7 +566,7 @@ export default function HealthProgressScreen() {
             ]}
             onPress={() => setSelectedSystem('respiratory')}
           >
-            <Lungs 
+            <Wind 
               size={24} 
               color={selectedSystem === 'respiratory' ? colors.background : colors.primary} 
             />
@@ -729,7 +729,7 @@ export default function HealthProgressScreen() {
             <View 
               style={[
                 styles.progressBar, 
-                { width: `${getHealingPercentage()}%`, backgroundColor: colors.progressBar }
+                { width: `${getHealingPercentage()}%`, backgroundColor: colors.progressFill }
               ]} 
             />
           </View>
@@ -789,7 +789,7 @@ export default function HealthProgressScreen() {
                       styles.timelineDetails,
                       totalDays >= improvement.day 
                         ? [styles.achievedDetails, { color: colors.textSecondary }] 
-                        : [styles.upcomingDetails, { color: colors.textTertiary }]
+                        : [styles.upcomingDetails, { color: colors.textSecondary }]
                     ]}
                   >
                     {improvement.details}

@@ -9,6 +9,7 @@ const lightColors = {
   card: '#F8F9FA',
   text: '#1A1A1A',
   textSecondary: '#6C757D',
+  textTertiary: '#8F959E',
   inactive: '#ADB5BD',
   success: '#28A745',
   danger: '#DC3545',
@@ -16,6 +17,7 @@ const lightColors = {
   info: '#17A2B8',
   progressBackground: '#E9ECEF',
   progressFill: '#5271FF',
+  progressBar: '#5271FF',
   shadow: 'rgba(0, 0, 0, 0.1)',
 };
 
@@ -27,6 +29,7 @@ const darkColors = {
   card: '#1E1E1E',
   text: '#F8F9FA',
   textSecondary: '#ADB5BD',
+  textTertiary: '#6C757D',
   inactive: '#6C757D',
   success: '#28A745',
   danger: '#DC3545',
@@ -34,6 +37,7 @@ const darkColors = {
   info: '#17A2B8',
   progressBackground: '#2A2A2A',
   progressFill: '#6C8AFF',
+  progressBar: '#6C8AFF',
   shadow: 'rgba(0, 0, 0, 0.3)',
 };
 
