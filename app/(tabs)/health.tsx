@@ -711,6 +711,7 @@ export default function HealthProgressScreen() {
             </Text>
           </TouchableOpacity>
           
+          {/* Psychological button - Make sure this is visible and properly styled */}
           <TouchableOpacity 
             style={[
               styles.systemButton, 

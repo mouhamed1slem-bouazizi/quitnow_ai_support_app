@@ -17,9 +17,8 @@ const lightColors = {
   info: '#17A2B8',
   progressBackground: '#E9ECEF',
   progressFill: '#5271FF',
-  progressBar: '#5271FF',
   shadow: 'rgba(0, 0, 0, 0.1)',
-  psychological: '#9C6ADE', // New color for psychological effects
+  psychological: '#9C6ADE', // Color for psychological effects
 };
 
 // Dark theme colors
@@ -38,9 +37,8 @@ const darkColors = {
   info: '#17A2B8',
   progressBackground: '#2A2A2A',
   progressFill: '#6C8AFF',
-  progressBar: '#6C8AFF',
   shadow: 'rgba(0, 0, 0, 0.3)',
-  psychological: '#B388FF', // New color for psychological effects
+  psychological: '#B388FF', // Color for psychological effects
 };
 
 // Default export for backward compatibility
