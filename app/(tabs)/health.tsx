@@ -180,78 +180,6 @@ export default function HealthProgressScreen() {
       ],
       currentImprovement: "Your cardiovascular system is recovering with improved blood flow, decreased inflammation, and reduced strain on your heart."
     },
-    nervous: {
-      title: "Nervous System",
-      icon: <Brain size={24} color={colors.primary} />,
-      improvements: [
-        { 
-          day: 0.04, // 1 hour
-          text: "Anxiety and stress levels begin to decrease",
-          details: "Despite the common belief that smoking relieves stress, within an hour of quitting, your body begins to normalize stress hormone levels."
-        },
-        { 
-          day: 1, 
-          text: "Oxygen levels to the brain increase",
-          details: "With carbon monoxide levels dropping, more oxygen reaches your brain, improving its function and reducing headaches."
-        },
-        { 
-          day: 2, 
-          text: "Nerve endings start to regrow",
-          details: "Damaged nerve endings begin the regeneration process. This is the beginning of improved sensory experiences."
-        },
-        { 
-          day: 3, 
-          text: "Acetylcholine receptors begin to recover",
-          details: "Nicotine receptors in your brain start to return to normal function, reducing cravings and dependency."
-        },
-        { 
-          day: 5, 
-          text: "Improved neurotransmitter balance",
-          details: "Levels of dopamine, serotonin, and other neurotransmitters begin to normalize, improving mood stability."
-        },
-        { 
-          day: 7, 
-          text: "Improved sense of taste and smell begins",
-          details: "Taste buds and olfactory nerves start to recover, allowing you to experience flavors and scents more vividly."
-        },
-        { 
-          day: 14, 
-          text: "Improved cognitive function and concentration",
-          details: "Brain fog diminishes as cerebral blood flow improves and inflammation decreases. Many people report clearer thinking."
-        },
-        { 
-          day: 21, 
-          text: "Sense of taste and smell significantly improved",
-          details: "Most people notice a dramatic improvement in their ability to taste food and smell scents by this point."
-        },
-        { 
-          day: 30, 
-          text: "Better cognitive function and concentration",
-          details: "Memory, problem-solving abilities, and attention span continue to improve as brain circulation and oxygen levels normalize."
-        },
-        { 
-          day: 60, 
-          text: "Improved sleep quality and patterns",
-          details: "Without nicotine's stimulant effects, your sleep architecture improves with more REM sleep and deeper sleep cycles."
-        },
-        { 
-          day: 90, 
-          text: "Reduced anxiety and depression symptoms",
-          details: "Neurotransmitter balance continues to improve, often resulting in more stable mood and reduced symptoms of anxiety and depression."
-        },
-        { 
-          day: 180, 
-          text: "Improved memory and mental clarity",
-          details: "Cognitive functions continue to improve, with better memory retention and mental processing speed."
-        },
-        { 
-          day: 365, 
-          text: "Brain plasticity improves, enhancing learning ability",
-          details: "Your brain's ability to form new connections and adapt to new information improves, enhancing learning capacity and cognitive flexibility."
-        },
-      ],
-      currentImprovement: "Your brain is receiving more oxygen and experiencing improved neurotransmitter balance, enhancing cognitive function and sensory perception."
-    },
     psychological: {
       title: "Psychological Effects",
       icon: <Zap size={24} color={colors.psychological} />,
@@ -338,6 +266,78 @@ export default function HealthProgressScreen() {
         },
       ],
       currentImprovement: "Your brain is adapting to life without nicotine, developing healthier response patterns and breaking the psychological dependence on smoking."
+    },
+    nervous: {
+      title: "Nervous System",
+      icon: <Brain size={24} color={colors.primary} />,
+      improvements: [
+        { 
+          day: 0.04, // 1 hour
+          text: "Anxiety and stress levels begin to decrease",
+          details: "Despite the common belief that smoking relieves stress, within an hour of quitting, your body begins to normalize stress hormone levels."
+        },
+        { 
+          day: 1, 
+          text: "Oxygen levels to the brain increase",
+          details: "With carbon monoxide levels dropping, more oxygen reaches your brain, improving its function and reducing headaches."
+        },
+        { 
+          day: 2, 
+          text: "Nerve endings start to regrow",
+          details: "Damaged nerve endings begin the regeneration process. This is the beginning of improved sensory experiences."
+        },
+        { 
+          day: 3, 
+          text: "Acetylcholine receptors begin to recover",
+          details: "Nicotine receptors in your brain start to return to normal function, reducing cravings and dependency."
+        },
+        { 
+          day: 5, 
+          text: "Improved neurotransmitter balance",
+          details: "Levels of dopamine, serotonin, and other neurotransmitters begin to normalize, improving mood stability."
+        },
+        { 
+          day: 7, 
+          text: "Improved sense of taste and smell begins",
+          details: "Taste buds and olfactory nerves start to recover, allowing you to experience flavors and scents more vividly."
+        },
+        { 
+          day: 14, 
+          text: "Improved cognitive function and concentration",
+          details: "Brain fog diminishes as cerebral blood flow improves and inflammation decreases. Many people report clearer thinking."
+        },
+        { 
+          day: 21, 
+          text: "Sense of taste and smell significantly improved",
+          details: "Most people notice a dramatic improvement in their ability to taste food and smell scents by this point."
+        },
+        { 
+          day: 30, 
+          text: "Better cognitive function and concentration",
+          details: "Memory, problem-solving abilities, and attention span continue to improve as brain circulation and oxygen levels normalize."
+        },
+        { 
+          day: 60, 
+          text: "Improved sleep quality and patterns",
+          details: "Without nicotine's stimulant effects, your sleep architecture improves with more REM sleep and deeper sleep cycles."
+        },
+        { 
+          day: 90, 
+          text: "Reduced anxiety and depression symptoms",
+          details: "Neurotransmitter balance continues to improve, often resulting in more stable mood and reduced symptoms of anxiety and depression."
+        },
+        { 
+          day: 180, 
+          text: "Improved memory and mental clarity",
+          details: "Cognitive functions continue to improve, with better memory retention and mental processing speed."
+        },
+        { 
+          day: 365, 
+          text: "Brain plasticity improves, enhancing learning ability",
+          details: "Your brain's ability to form new connections and adapt to new information improves, enhancing learning capacity and cognitive flexibility."
+        },
+      ],
+      currentImprovement: "Your brain is receiving more oxygen and experiencing improved neurotransmitter balance, enhancing cognitive function and sensory perception."
     },
     general: {
       title: "Overall Health",
@@ -645,6 +645,7 @@ export default function HealthProgressScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.systemButtonsContainer}
         >
+          {/* Respiratory button */}
           <TouchableOpacity 
             style={[
               styles.systemButton, 
@@ -667,6 +668,7 @@ export default function HealthProgressScreen() {
             </Text>
           </TouchableOpacity>
           
+          {/* Cardiovascular button */}
           <TouchableOpacity 
             style={[
               styles.systemButton, 
@@ -689,29 +691,7 @@ export default function HealthProgressScreen() {
             </Text>
           </TouchableOpacity>
           
-          <TouchableOpacity 
-            style={[
-              styles.systemButton, 
-              { backgroundColor: selectedSystem === 'nervous' ? colors.primary : colors.background, 
-                borderColor: selectedSystem === 'nervous' ? colors.primary : colors.progressBackground }
-            ]}
-            onPress={() => setSelectedSystem('nervous')}
-          >
-            <Brain 
-              size={24} 
-              color={selectedSystem === 'nervous' ? colors.background : colors.primary} 
-            />
-            <Text 
-              style={[
-                styles.systemButtonText,
-                { color: selectedSystem === 'nervous' ? colors.background : colors.text }
-              ]}
-            >
-              Nervous
-            </Text>
-          </TouchableOpacity>
-          
-          {/* Psychological button - Make sure this is visible and properly styled */}
+          {/* Psychological button - Moved up in the list for better visibility */}
           <TouchableOpacity 
             style={[
               styles.systemButton, 
@@ -734,6 +714,30 @@ export default function HealthProgressScreen() {
             </Text>
           </TouchableOpacity>
           
+          {/* Nervous system button */}
+          <TouchableOpacity 
+            style={[
+              styles.systemButton, 
+              { backgroundColor: selectedSystem === 'nervous' ? colors.primary : colors.background, 
+                borderColor: selectedSystem === 'nervous' ? colors.primary : colors.progressBackground }
+            ]}
+            onPress={() => setSelectedSystem('nervous')}
+          >
+            <Brain 
+              size={24} 
+              color={selectedSystem === 'nervous' ? colors.background : colors.primary} 
+            />
+            <Text 
+              style={[
+                styles.systemButtonText,
+                { color: selectedSystem === 'nervous' ? colors.background : colors.text }
+              ]}
+            >
+              Nervous
+            </Text>
+          </TouchableOpacity>
+          
+          {/* Immune system button */}
           <TouchableOpacity 
             style={[
               styles.systemButton, 
@@ -756,6 +760,7 @@ export default function HealthProgressScreen() {
             </Text>
           </TouchableOpacity>
           
+          {/* Digestive system button */}
           <TouchableOpacity 
             style={[
               styles.systemButton, 
@@ -778,6 +783,7 @@ export default function HealthProgressScreen() {
             </Text>
           </TouchableOpacity>
           
+          {/* Hormonal system button */}
           <TouchableOpacity 
             style={[
               styles.systemButton, 
@@ -800,6 +806,7 @@ export default function HealthProgressScreen() {
             </Text>
           </TouchableOpacity>
           
+          {/* Overall health button */}
           <TouchableOpacity 
             style={[
               styles.systemButton, 
@@ -1051,6 +1058,7 @@ const styles = StyleSheet.create({
   },
   systemButtonsContainer: {
     paddingVertical: 8,
+    paddingRight: 16, // Add extra padding to ensure all buttons are visible
   },
   systemButton: {
     flexDirection: 'row',
@@ -1060,6 +1068,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     marginRight: 12,
     borderWidth: 1,
+    minWidth: 130, // Set minimum width to ensure text fits
   },
   systemButtonText: {
     fontSize: 14,
