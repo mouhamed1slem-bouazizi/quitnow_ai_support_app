@@ -1,57 +1,58 @@
 import { MoodType } from '@/types/user';
 
 export interface MoodOption {
-  type: MoodType;
+  id: MoodType;
   label: string;
   emoji: string;
   color: string;
 }
 
-export const moodOptions: MoodOption[] = [
+// Export MOODS array for backward compatibility
+export const MOODS: MoodOption[] = [
   {
-    type: 'happy',
+    id: 'happy',
     label: 'Happy',
     emoji: '😊',
     color: '#FFD700', // Gold
   },
   {
-    type: 'sad',
+    id: 'sad',
     label: 'Sad',
     emoji: '😢',
     color: '#6495ED', // Cornflower Blue
   },
   {
-    type: 'angry',
+    id: 'angry',
     label: 'Angry',
     emoji: '😠',
     color: '#FF6347', // Tomato
   },
   {
-    type: 'anxious',
+    id: 'anxious',
     label: 'Anxious',
     emoji: '😰',
     color: '#9370DB', // Medium Purple
   },
   {
-    type: 'calm',
+    id: 'calm',
     label: 'Calm',
     emoji: '😌',
     color: '#98FB98', // Pale Green
   },
   {
-    type: 'energetic',
+    id: 'energetic',
     label: 'Energetic',
     emoji: '⚡',
     color: '#FFA500', // Orange
   },
   {
-    type: 'tired',
+    id: 'tired',
     label: 'Tired',
     emoji: '😴',
     color: '#778899', // Light Slate Gray
   },
   {
-    type: 'neutral',
+    id: 'neutral',
     label: 'Neutral',
     emoji: '😐',
     color: '#A9A9A9', // Dark Gray
@@ -59,5 +60,5 @@ export const moodOptions: MoodOption[] = [
 ];
 
 export const getMoodOption = (type: MoodType): MoodOption => {
-  return moodOptions.find(option => option.type === type) || moodOptions[7]; // Default to neutral
+  return MOODS.find(option => option.id === type) || MOODS[7]; // Default to neutral
 };

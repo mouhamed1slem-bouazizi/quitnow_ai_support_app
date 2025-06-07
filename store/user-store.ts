@@ -176,8 +176,9 @@ export const useUserStore = create<UserState>()(
         const recentMoods: MoodRecord[] = diaryEntries
           .filter(entry => new Date(entry.timestamp) >= sevenDaysAgo)
           .map(entry => ({
-            date: new Date(entry.timestamp),
-            mood: entry.mood
+            id: entry.id,
+            timestamp: entry.timestamp,
+            type: entry.mood
           }));
         
         return recentMoods;

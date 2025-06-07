@@ -3,7 +3,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { useUserStore } from '@/store/user-store';
 import { useThemeColors } from '@/constants/colors';
 import { MOODS } from '@/constants/moods';
-import { MoodType } from '@/types/user';
+import { MoodType, MoodRecord } from '@/types/user';
 
 export default function MoodChart() {
   const colors = useThemeColors();
@@ -46,10 +46,13 @@ export default function MoodChart() {
     
     // Find the most recent mood entry for this day
     const moodForDay = recentMoods.find(
-      record => record.date >= dayStart && record.date <= dayEnd
+      record => {
+        const recordDate = new Date(record.timestamp);
+        return recordDate >= dayStart && recordDate <= dayEnd;
+      }
     );
     
-    return moodForDay ? moodForDay.mood : null;
+    return moodForDay ? moodForDay.type : null;
   };
   
   // Get color for a mood

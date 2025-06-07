@@ -8,6 +8,7 @@ const lightColors = {
   psychological: '#9c5cff', // Purple color for psychological category
   background: '#f8f9fa',
   card: '#ffffff',
+  cardDark: '#e9ecef', // Added for empty mood circles
   text: '#212529',
   textSecondary: '#6c757d',
   textTertiary: '#adb5bd',
@@ -29,6 +30,7 @@ const darkColors = {
   psychological: '#b77cff', // Lighter purple for dark mode
   background: '#121212',
   card: '#1e1e1e',
+  cardDark: '#2a2a2a', // Added for empty mood circles
   text: '#f8f9fa',
   textSecondary: '#adb5bd',
   textTertiary: '#6c757d',
