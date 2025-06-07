@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { 
   View, 
   Text, 
@@ -20,6 +20,7 @@ import { getMoodOption } from '@/constants/moods';
 import { Trash2 } from 'lucide-react-native';
 
 export default function DiaryScreen() {
+  // Use useMemo to prevent infinite loop with useThemeColors
   const colors = useThemeColors();
   const [diaryContent, setDiaryContent] = useState('');
   const [selectedMood, setSelectedMood] = useState<MoodType>('neutral');
@@ -143,11 +144,11 @@ export default function DiaryScreen() {
                         <View 
                           style={[
                             styles.moodBadge, 
-                            { backgroundColor: moodOption?.color || '#A9A9A9' }
+                            { backgroundColor: moodOption.color || '#A9A9A9' }
                           ]}
                         >
-                          <Text style={styles.moodEmoji}>{moodOption?.emoji || '😐'}</Text>
-                          <Text style={styles.moodLabel}>{moodOption?.label || 'Neutral'}</Text>
+                          <Text style={styles.moodEmoji}>{moodOption.emoji || '😐'}</Text>
+                          <Text style={styles.moodLabel}>{moodOption.label || 'Neutral'}</Text>
                         </View>
                       </View>
                     </View>

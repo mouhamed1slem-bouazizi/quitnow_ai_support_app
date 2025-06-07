@@ -1,58 +1,58 @@
 import { MoodType } from '@/types/user';
 
 export interface MoodOption {
-  id: MoodType;
+  type: MoodType;
   label: string;
   emoji: string;
   color: string;
 }
 
-// Export MOODS array for use in components
-export const MOODS: MoodOption[] = [
+// Export moodOptions array for use in components
+export const moodOptions: MoodOption[] = [
   {
-    id: 'happy',
+    type: 'happy',
     label: 'Happy',
     emoji: '😊',
     color: '#FFD700', // Gold
   },
   {
-    id: 'sad',
+    type: 'sad',
     label: 'Sad',
     emoji: '😢',
     color: '#6495ED', // Cornflower Blue
   },
   {
-    id: 'angry',
+    type: 'angry',
     label: 'Angry',
     emoji: '😠',
     color: '#FF6347', // Tomato
   },
   {
-    id: 'anxious',
+    type: 'anxious',
     label: 'Anxious',
     emoji: '😰',
     color: '#9370DB', // Medium Purple
   },
   {
-    id: 'calm',
+    type: 'calm',
     label: 'Calm',
     emoji: '😌',
     color: '#98FB98', // Pale Green
   },
   {
-    id: 'energetic',
+    type: 'energetic',
     label: 'Energetic',
     emoji: '⚡',
     color: '#FFA500', // Orange
   },
   {
-    id: 'tired',
+    type: 'tired',
     label: 'Tired',
     emoji: '😴',
     color: '#778899', // Light Slate Gray
   },
   {
-    id: 'neutral',
+    type: 'neutral',
     label: 'Neutral',
     emoji: '😐',
     color: '#A9A9A9', // Dark Gray
@@ -61,7 +61,7 @@ export const MOODS: MoodOption[] = [
 
 // Default mood option to use as fallback
 const DEFAULT_MOOD: MoodOption = {
-  id: 'neutral',
+  type: 'neutral',
   label: 'Neutral',
   emoji: '😐',
   color: '#A9A9A9',
@@ -73,7 +73,7 @@ export const getMoodOption = (type: MoodType): MoodOption => {
     return DEFAULT_MOOD;
   }
   
-  const foundMood = MOODS.find(option => option.id === type);
+  const foundMood = moodOptions.find(option => option.type === type);
   // Always return a valid mood option, defaulting to neutral if not found
   return foundMood || DEFAULT_MOOD;
 };

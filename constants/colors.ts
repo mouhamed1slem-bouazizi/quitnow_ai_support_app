@@ -64,17 +64,21 @@ const cachedDarkColors: ThemeColors = { ...darkColors, theme: 'dark' };
 const cachedSystemLightColors: ThemeColors = { ...lightColors, theme: 'system' };
 const cachedSystemDarkColors: ThemeColors = { ...darkColors, theme: 'system' };
 
+// Create a non-hook version to use in places where hooks aren't allowed
+export const getThemeColors = (theme: ThemeType, systemColorScheme?: 'light' | 'dark' | null): ThemeColors => {
+  if (theme === 'system') {
+    return systemColorScheme === 'dark' ? cachedSystemDarkColors : cachedSystemLightColors;
+  }
+  return theme === 'dark' ? cachedDarkColors : cachedLightColors;
+};
+
 export function useThemeColors(): ThemeColors {
   const systemColorScheme = useColorScheme();
   const theme = useUserStore(state => state.theme);
   
   // Use useMemo to cache the result and prevent infinite loops
   return useMemo(() => {
-    // Determine which theme to use
-    if (theme === 'system') {
-      return systemColorScheme === 'dark' ? cachedSystemDarkColors : cachedSystemLightColors;
-    }
-    return theme === 'dark' ? cachedDarkColors : cachedLightColors;
+    return getThemeColors(theme, systemColorScheme);
   }, [systemColorScheme, theme]);
 }
 
