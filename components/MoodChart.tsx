@@ -29,7 +29,7 @@ export default function MoodChart() {
     recentMoods.forEach(mood => {
       const dateString = new Date(mood.timestamp).toISOString().split('T')[0];
       // Only keep the most recent mood for each day
-      if (!days[dateString] || new Date(mood.timestamp) > new Date(days[dateString]?.timestamp || 0)) {
+      if (!days[dateString] || (days[dateString] && new Date(mood.timestamp) > new Date(days[dateString]!.timestamp))) {
         days[dateString] = mood;
       }
     });

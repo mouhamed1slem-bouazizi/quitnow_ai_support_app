@@ -4,7 +4,7 @@ import { Image } from 'expo-image';
 import { useUserStore } from '@/store/user-store';
 import { healthMilestones } from '@/constants/achievements';
 import { useThemeColors } from '@/constants/colors';
-import { Heart, Wind, Brain, Activity, ArrowRight, Info, Clock, Droplet, Shield } from 'lucide-react-native';
+import { Heart, Wind, Brain, Activity, ArrowRight, Info, Clock, Droplet, Shield, Zap } from 'lucide-react-native';
 
 const { width } = Dimensions.get('window');
 
@@ -251,6 +251,93 @@ export default function HealthProgressScreen() {
         },
       ],
       currentImprovement: "Your brain is receiving more oxygen and experiencing improved neurotransmitter balance, enhancing cognitive function and sensory perception."
+    },
+    psychological: {
+      title: "Psychological Effects",
+      icon: <Zap size={24} color={colors.psychological} />,
+      improvements: [
+        { 
+          day: 0.04, // 1 hour
+          text: "Nicotine withdrawal begins",
+          details: "Your brain starts to notice the absence of nicotine, which may trigger initial cravings. This is the beginning of the psychological adjustment process."
+        },
+        { 
+          day: 0.125, // 3 hours
+          text: "Irritability and anxiety may increase",
+          details: "As nicotine levels continue to drop, you may experience increased irritability, anxiety, and restlessness. These are normal withdrawal symptoms."
+        },
+        { 
+          day: 0.5, // 12 hours
+          text: "Mood swings and difficulty concentrating",
+          details: "You might experience mood fluctuations and find it harder to focus. Your brain is adjusting to functioning without nicotine."
+        },
+        { 
+          day: 1, 
+          text: "Peak of physical withdrawal symptoms",
+          details: "Cravings are typically strongest during the first 24 hours. You may feel irritable, anxious, or have difficulty sleeping. Remember these are temporary."
+        },
+        { 
+          day: 2, 
+          text: "Increased hunger and food cravings",
+          details: "Nicotine suppresses appetite, so you may notice increased hunger. Some people experience cravings for sweets as the brain seeks alternative sources of pleasure."
+        },
+        { 
+          day: 3, 
+          text: "Irritability and anger peak",
+          details: "Day 3 is often when irritability, frustration, and anger reach their highest levels. This is a critical point in the withdrawal process - pushing through leads to easier days ahead."
+        },
+        { 
+          day: 5, 
+          text: "Mental fog begins to clear",
+          details: "The mental cloudiness that accompanies withdrawal starts to dissipate. Your ability to concentrate begins to improve."
+        },
+        { 
+          day: 7, 
+          text: "Significant reduction in frequency of cravings",
+          details: "While cravings may still occur, they typically become less frequent and less intense by the end of the first week."
+        },
+        { 
+          day: 10, 
+          text: "Improved mood stability",
+          details: "Mood swings begin to stabilize as your brain chemistry adjusts to functioning without nicotine."
+        },
+        { 
+          day: 14, 
+          text: "Decreased depression symptoms",
+          details: "Many people experience a lifting of depressive symptoms that can accompany withdrawal. Your outlook may become more positive."
+        },
+        { 
+          day: 21, 
+          text: "New coping mechanisms developing",
+          details: "By this point, you've likely developed new ways to handle stress and emotions without reaching for cigarettes."
+        },
+        { 
+          day: 30, 
+          text: "Breaking of psychological dependence begins",
+          details: "The mental association between daily activities and smoking starts to weaken significantly. You're forming new, healthier habits."
+        },
+        { 
+          day: 60, 
+          text: "Significant reduction in psychological cravings",
+          details: "The psychological urge to smoke in response to triggers (stress, after meals, social situations) decreases substantially."
+        },
+        { 
+          day: 90, 
+          text: "New identity as a non-smoker strengthens",
+          details: "You begin to see yourself as a non-smoker rather than an ex-smoker. This shift in identity helps reinforce your smoke-free lifestyle."
+        },
+        { 
+          day: 180, 
+          text: "Stress response normalizes",
+          details: "Your body and mind learn to handle stress without nicotine. You develop healthier coping mechanisms for life's challenges."
+        },
+        { 
+          day: 365, 
+          text: "Freedom from psychological dependence",
+          details: "Most people report feeling completely free from the psychological addiction after one year. Thoughts about smoking become rare and fleeting."
+        },
+      ],
+      currentImprovement: "Your brain is adapting to life without nicotine, developing healthier response patterns and breaking the psychological dependence on smoking."
     },
     general: {
       title: "Overall Health",
@@ -627,6 +714,28 @@ export default function HealthProgressScreen() {
           <TouchableOpacity 
             style={[
               styles.systemButton, 
+              { backgroundColor: selectedSystem === 'psychological' ? colors.psychological : colors.background, 
+                borderColor: selectedSystem === 'psychological' ? colors.psychological : colors.progressBackground }
+            ]}
+            onPress={() => setSelectedSystem('psychological')}
+          >
+            <Zap 
+              size={24} 
+              color={selectedSystem === 'psychological' ? colors.background : colors.psychological} 
+            />
+            <Text 
+              style={[
+                styles.systemButtonText,
+                { color: selectedSystem === 'psychological' ? colors.background : colors.text }
+              ]}
+            >
+              Psychological
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity 
+            style={[
+              styles.systemButton, 
               { backgroundColor: selectedSystem === 'immune' ? colors.primary : colors.background, 
                 borderColor: selectedSystem === 'immune' ? colors.primary : colors.progressBackground }
             ]}
@@ -729,15 +838,37 @@ export default function HealthProgressScreen() {
             <View 
               style={[
                 styles.progressBar, 
-                { width: `${getHealingPercentage()}%`, backgroundColor: colors.progressFill }
+                { 
+                  width: `${getHealingPercentage()}%`, 
+                  backgroundColor: selectedSystem === 'psychological' ? colors.psychological : colors.progressFill 
+                }
               ]} 
             />
           </View>
-          <Text style={[styles.percentageText, { color: colors.primary }]}>{Math.round(getHealingPercentage())}%</Text>
+          <Text 
+            style={[
+              styles.percentageText, 
+              { color: selectedSystem === 'psychological' ? colors.psychological : colors.primary }
+            ]}
+          >
+            {Math.round(getHealingPercentage())}%
+          </Text>
         </View>
         
-        <View style={[styles.currentImprovementContainer, { backgroundColor: colors.background, borderColor: colors.progressBackground }]}>
-          <Info size={18} color={colors.primary} />
+        <View 
+          style={[
+            styles.currentImprovementContainer, 
+            { 
+              backgroundColor: colors.background, 
+              borderColor: selectedSystem === 'psychological' ? colors.psychological : colors.progressBackground,
+              borderLeftWidth: 4
+            }
+          ]}
+        >
+          <Info 
+            size={18} 
+            color={selectedSystem === 'psychological' ? colors.psychological : colors.primary} 
+          />
           <Text style={[styles.currentImprovementText, { color: colors.text }]}>
             {getCurrentImprovement()}
           </Text>
@@ -753,8 +884,23 @@ export default function HealthProgressScreen() {
                   style={[
                     styles.dot, 
                     totalDays >= improvement.day 
-                      ? [styles.achievedDot, { backgroundColor: colors.primary }] 
-                      : [styles.upcomingDot, { backgroundColor: colors.progressBackground, borderColor: colors.inactive }]
+                      ? [
+                          styles.achievedDot, 
+                          { 
+                            backgroundColor: selectedSystem === 'psychological' 
+                              ? colors.psychological 
+                              : colors.primary 
+                          }
+                        ] 
+                      : [
+                          styles.upcomingDot, 
+                          { 
+                            backgroundColor: colors.progressBackground, 
+                            borderColor: selectedSystem === 'psychological' 
+                              ? `${colors.psychological}50` 
+                              : colors.inactive 
+                          }
+                        ]
                   ]} 
                 />
                 {index < getRelevantImprovements().length - 1 && (
@@ -762,7 +908,14 @@ export default function HealthProgressScreen() {
                     style={[
                       styles.timelineLine,
                       totalDays >= improvement.day 
-                        ? [styles.achievedLine, { backgroundColor: colors.primary }] 
+                        ? [
+                            styles.achievedLine, 
+                            { 
+                              backgroundColor: selectedSystem === 'psychological' 
+                                ? colors.psychological 
+                                : colors.primary 
+                            }
+                          ] 
                         : [styles.upcomingLine, { backgroundColor: colors.progressBackground }]
                     ]} 
                   />
@@ -770,7 +923,16 @@ export default function HealthProgressScreen() {
               </View>
               
               <View style={styles.timelineContent}>
-                <Text style={[styles.timelineDay, { color: colors.primary }]}>
+                <Text 
+                  style={[
+                    styles.timelineDay, 
+                    { 
+                      color: selectedSystem === 'psychological' 
+                        ? colors.psychological 
+                        : colors.primary 
+                    }
+                  ]}
+                >
                   {formatDayDisplay(improvement.day)}
                 </Text>
                 <Text 
@@ -789,7 +951,7 @@ export default function HealthProgressScreen() {
                       styles.timelineDetails,
                       totalDays >= improvement.day 
                         ? [styles.achievedDetails, { color: colors.textSecondary }] 
-                        : [styles.upcomingDetails, { color: colors.textSecondary }]
+                        : [styles.upcomingDetails, { color: colors.textTertiary }]
                     ]}
                   >
                     {improvement.details}
@@ -805,7 +967,7 @@ export default function HealthProgressScreen() {
       <View style={[styles.visualizationCard, { backgroundColor: colors.card }]}>
         <Text style={[styles.sectionTitle, { color: colors.text }]}>Body Healing Visualization</Text>
         <Image
-          source={{ uri: `https://image.pollinations.ai/prompt/${encodeURIComponent(`Medical illustration of human ${selectedSystem === 'general' ? 'body' : selectedSystem} system healing after quitting smoking for ${totalDays} days, clean medical diagram style, educational, blue color scheme`)}` }}
+          source={{ uri: `https://image.pollinations.ai/prompt/${encodeURIComponent(`Medical illustration of human ${selectedSystem === 'general' ? 'body' : selectedSystem === 'psychological' ? 'brain with mood and mental health visualization' : selectedSystem} system healing after quitting smoking for ${totalDays} days, clean medical diagram style, educational, ${selectedSystem === 'psychological' ? 'purple' : 'blue'} color scheme`)}` }}
           style={styles.bodyImage}
           contentFit="cover"
           transition={1000}
