@@ -46,7 +46,9 @@ export function useThemeColors() {
   return colorScheme === 'dark' ? darkColors : lightColors;
 }
 
-export const colors = {
+// Export default colors object for backward compatibility
+export default {
+  ...lightColors,
   light: lightColors,
   dark: darkColors,
 };

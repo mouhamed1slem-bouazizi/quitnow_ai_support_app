@@ -187,7 +187,7 @@ export default function HealthProgressScreen() {
     },
     psychological: {
       title: "Psychological Effects",
-      icon: <Zap size={24} color={colors.psychological || '#9c5cff'} />,
+      icon: <Zap size={24} color={colors.psychological} />,
       improvements: [
         { 
           day: 0.04, // 1 hour
@@ -690,10 +690,10 @@ export default function HealthProgressScreen() {
                 styles.systemButton, 
                 { 
                   backgroundColor: selectedSystem === system 
-                    ? (system === 'psychological' ? colors.psychological || '#9c5cff' : colors.primary) 
+                    ? (system === 'psychological' ? colors.psychological : colors.primary) 
                     : colors.background, 
                   borderColor: selectedSystem === system 
-                    ? (system === 'psychological' ? colors.psychological || '#9c5cff' : colors.primary) 
+                    ? (system === 'psychological' ? colors.psychological : colors.primary) 
                     : colors.progressBackground 
                 }
               ]}
@@ -714,7 +714,7 @@ export default function HealthProgressScreen() {
               {system === 'psychological' && (
                 <Zap 
                   size={20} 
-                  color={selectedSystem === system ? colors.background : colors.psychological || '#9c5cff'} 
+                  color={selectedSystem === system ? colors.background : colors.psychological} 
                 />
               )}
               {system === 'nervous' && (
@@ -729,7 +729,7 @@ export default function HealthProgressScreen() {
                   { 
                     color: selectedSystem === system 
                       ? colors.background 
-                      : (system === 'psychological' ? colors.psychological || '#9c5cff' : colors.text) 
+                      : (system === 'psychological' ? colors.psychological : colors.text) 
                   }
                 ]}
                 numberOfLines={1}
@@ -792,7 +792,11 @@ export default function HealthProgressScreen() {
       {/* Selected system details */}
       <View style={[styles.systemDetailsCard, { backgroundColor: colors.card }]}>
         <View style={styles.systemHeader}>
-          {healthSystems[selectedSystem].icon}
+          {selectedSystem === 'psychological' ? (
+            <Zap size={24} color={colors.psychological} />
+          ) : (
+            healthSystems[selectedSystem].icon
+          )}
           <Text style={[styles.systemTitle, { color: colors.text }]}>
             {healthSystems[selectedSystem].title}
           </Text>
@@ -806,7 +810,7 @@ export default function HealthProgressScreen() {
                 styles.progressBar, 
                 { 
                   width: `${getHealingPercentage()}%`, 
-                  backgroundColor: selectedSystem === 'psychological' ? colors.psychological || '#9c5cff' : colors.progressFill 
+                  backgroundColor: selectedSystem === 'psychological' ? colors.psychological : colors.progressFill 
                 }
               ]} 
             />
@@ -814,7 +818,7 @@ export default function HealthProgressScreen() {
           <Text 
             style={[
               styles.percentageText, 
-              { color: selectedSystem === 'psychological' ? colors.psychological || '#9c5cff' : colors.primary }
+              { color: selectedSystem === 'psychological' ? colors.psychological : colors.primary }
             ]}
           >
             {Math.round(getHealingPercentage())}%
@@ -826,14 +830,14 @@ export default function HealthProgressScreen() {
             styles.currentImprovementContainer, 
             { 
               backgroundColor: colors.background, 
-              borderColor: selectedSystem === 'psychological' ? colors.psychological || '#9c5cff' : colors.progressBackground,
+              borderColor: selectedSystem === 'psychological' ? colors.psychological : colors.progressBackground,
               borderLeftWidth: 4
             }
           ]}
         >
           <Info 
             size={18} 
-            color={selectedSystem === 'psychological' ? colors.psychological || '#9c5cff' : colors.primary} 
+            color={selectedSystem === 'psychological' ? colors.psychological : colors.primary} 
           />
           <Text style={[styles.currentImprovementText, { color: colors.text }]}>
             {getCurrentImprovement()}
@@ -854,7 +858,7 @@ export default function HealthProgressScreen() {
                           styles.achievedDot, 
                           { 
                             backgroundColor: selectedSystem === 'psychological' 
-                              ? colors.psychological || '#9c5cff' 
+                              ? colors.psychological
                               : colors.primary 
                           }
                         ] 
@@ -863,7 +867,7 @@ export default function HealthProgressScreen() {
                           { 
                             backgroundColor: colors.progressBackground, 
                             borderColor: selectedSystem === 'psychological' 
-                              ? (colors.psychological || '#9c5cff') + '50' 
+                              ? colors.psychological + '50' 
                               : colors.inactive 
                           }
                         ]
@@ -878,7 +882,7 @@ export default function HealthProgressScreen() {
                             styles.achievedLine, 
                             { 
                               backgroundColor: selectedSystem === 'psychological' 
-                                ? colors.psychological || '#9c5cff' 
+                                ? colors.psychological
                                 : colors.primary 
                             }
                           ] 
@@ -894,7 +898,7 @@ export default function HealthProgressScreen() {
                     styles.timelineDay, 
                     { 
                       color: selectedSystem === 'psychological' 
-                        ? colors.psychological || '#9c5cff' 
+                        ? colors.psychological
                         : colors.primary 
                     }
                   ]}

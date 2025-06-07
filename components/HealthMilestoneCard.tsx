@@ -2,10 +2,11 @@ import React from 'react';
 import { View, Text, StyleSheet, FlatList } from 'react-native';
 import { useUserStore } from '@/store/user-store';
 import { healthMilestones } from '@/constants/achievements';
-import colors from '@/constants/colors';
+import { useThemeColors } from '@/constants/colors';
 import { CheckCircle2, Circle } from 'lucide-react-native';
 
 export default function HealthMilestoneCard() {
+  const colors = useThemeColors();
   const { calculateProgress } = useUserStore();
   const { smokeFreeTime } = calculateProgress();
   const totalDays = smokeFreeTime.days;
@@ -37,20 +38,22 @@ export default function HealthMilestoneCard() {
         <View style={styles.milestoneContent}>
           <Text style={[
             styles.milestoneTitle,
-            isAchieved && styles.achievedText
+            { color: isAchieved ? colors.success : colors.text }
           ]}>
             {item.title}
           </Text>
-          <Text style={styles.milestoneDescription}>{item.description}</Text>
+          <Text style={[styles.milestoneDescription, { color: colors.textSecondary }]}>
+            {item.description}
+          </Text>
         </View>
       </View>
     );
   };
   
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.card }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>Health Milestones</Text>
+        <Text style={[styles.title, { color: colors.text }]}>Health Milestones</Text>
       </View>
       
       <FlatList
@@ -58,7 +61,7 @@ export default function HealthMilestoneCard() {
         renderItem={renderMilestone}
         keyExtractor={(item) => item.title}
         scrollEnabled={false}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
+        ItemSeparatorComponent={() => <View style={[styles.separator, { backgroundColor: colors.progressBackground }]} />}
       />
     </View>
   );
@@ -66,7 +69,6 @@ export default function HealthMilestoneCard() {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: colors.card,
     borderRadius: 16,
     padding: 16,
     marginHorizontal: 16,
@@ -83,7 +85,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 18,
     fontWeight: '600',
-    color: colors.text,
   },
   milestoneItem: {
     flexDirection: 'row',
@@ -100,20 +101,14 @@ const styles = StyleSheet.create({
   milestoneTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.text,
     marginBottom: 2,
-  },
-  achievedText: {
-    color: colors.success,
   },
   milestoneDescription: {
     fontSize: 14,
-    color: colors.textSecondary,
     lineHeight: 20,
   },
   separator: {
     height: 1,
-    backgroundColor: colors.progressBackground,
     marginVertical: 4,
   },
 });
