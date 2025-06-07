@@ -7,10 +7,32 @@ import { useThemeColors } from '@/constants/colors';
 
 export default function MoodChart() {
   const colors = useThemeColors();
-  const getRecentMoods = useUserStore(state => state.getRecentMoods);
+  const diaryEntries = useUserStore(state => state.diaryEntries);
   
   // Get moods from the last 7 days
-  const recentMoods = getRecentMoods(7);
+  const recentMoods = useMemo(() => {
+    const now = new Date();
+    const startDate = new Date(now);
+    startDate.setDate(now.getDate() - 7);
+    
+    // Convert diary entries to mood records
+    const moodRecords: MoodRecord[] = diaryEntries
+      .filter(entry => {
+        const entryDate = new Date(entry.timestamp);
+        return entryDate >= startDate && entryDate <= now;
+      })
+      .map(entry => ({
+        id: entry.id,
+        timestamp: entry.timestamp,
+        type: entry.mood,
+        note: entry.content
+      }));
+    
+    // Sort by timestamp, newest first
+    return moodRecords.sort((a, b) => 
+      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+  }, [diaryEntries]);
   
   // Group moods by day
   const moodsByDay = useMemo(() => {
@@ -71,7 +93,9 @@ export default function MoodChart() {
           
           return (
             <View key={dateString} style={styles.dayColumn}>
-              <Text style={[styles.dayName, { color: colors.text }]}>{dayName}</Text>
+              <Text style={[styles.dayName, { color: colors.text }]} numberOfLines={1} ellipsizeMode="tail">
+                {dayName}
+              </Text>
               <View 
                 style={[
                   styles.moodCircle, 
@@ -115,12 +139,14 @@ const styles = StyleSheet.create({
   dayColumn: {
     alignItems: 'center',
     marginRight: 16,
-    width: 60,
+    width: 70, // Increased width to accommodate "Yesterday"
   },
   dayName: {
     fontSize: 14,
     fontWeight: '500',
     marginBottom: 8,
+    textAlign: 'center',
+    width: '100%', // Ensure text takes full width of column
   },
   moodCircle: {
     width: 50,
