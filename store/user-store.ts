@@ -206,6 +206,20 @@ export const useUserStore = create<UserState>()(
       storage: createJSONStorage(() => AsyncStorage),
       // Add version to handle migrations if needed
       version: 1,
+      // Add migrate function to handle state migration
+      migrate: (persistedState: any, version) => {
+        // If we're at the current version, just return the state
+        if (version === 1) return persistedState as UserState;
+        
+        // Handle migration from older versions
+        // For now, just ensure diaryEntries is an array
+        return {
+          ...persistedState,
+          diaryEntries: Array.isArray(persistedState.diaryEntries) 
+            ? persistedState.diaryEntries 
+            : []
+        } as UserState;
+      }
     }
   )
 );

@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useUserStore } from '@/store/user-store';
 import { useThemeColors } from '@/constants/colors';
-import { getMoodOption, MOODS } from '@/constants/moods';
+import { getMoodOption } from '@/constants/moods';
 import { MoodRecord } from '@/types/user';
 
 export default function MoodChart() {
@@ -77,7 +77,7 @@ export default function MoodChart() {
               <View 
                 style={[
                   styles.moodCircle, 
-                  { backgroundColor: moodOption ? moodOption.color : colors.card }
+                  { backgroundColor: moodOption ? moodOption.color : colors.inactive }
                 ]}
               >
                 <Text style={styles.moodEmoji}>

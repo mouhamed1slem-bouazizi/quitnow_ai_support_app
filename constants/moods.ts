@@ -7,7 +7,7 @@ export interface MoodOption {
   color: string;
 }
 
-// Export MOODS array for backward compatibility
+// Export MOODS array for use in components
 export const MOODS: MoodOption[] = [
   {
     id: 'happy',
