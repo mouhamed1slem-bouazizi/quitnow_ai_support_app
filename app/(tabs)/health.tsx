@@ -1049,8 +1049,8 @@ const styles = StyleSheet.create({
     marginRight: 8,
     borderWidth: 1,
     // Adjust width for better mobile display
-    minWidth: Platform.OS === 'web' ? 130 : 110,
-    maxWidth: Platform.OS === 'web' ? 150 : 120,
+    minWidth: Platform.OS === 'web' ? 130 : 100,
+    maxWidth: Platform.OS === 'web' ? 150 : 110,
   },
   systemButtonText: {
     fontSize: 14,
