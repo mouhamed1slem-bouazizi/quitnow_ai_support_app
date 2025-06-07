@@ -30,7 +30,12 @@ export default function DiaryScreen() {
     addDiaryEntry, 
     removeDiaryEntry, 
     recordMood 
-  } = useUserStore();
+  } = useUserStore(state => ({
+    diaryEntries: state.diaryEntries || [],
+    addDiaryEntry: state.addDiaryEntry,
+    removeDiaryEntry: state.removeDiaryEntry,
+    recordMood: state.recordMood
+  }));
   
   const handleAddEntry = () => {
     if (diaryContent.trim() === '') {
@@ -120,7 +125,7 @@ export default function DiaryScreen() {
         <View style={styles.entriesContainer}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Your Diary Entries</Text>
           
-          {diaryEntries.length === 0 ? (
+          {!diaryEntries || diaryEntries.length === 0 ? (
             <View style={[styles.emptyState, { backgroundColor: colors.card }]}>
               <Text style={[styles.emptyStateText, { color: colors.textSecondary }]}>
                 No diary entries yet. Start writing about your journey!

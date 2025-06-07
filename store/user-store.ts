@@ -133,12 +133,12 @@ export const useUserStore = create<UserState>()(
         };
         
         return {
-          diaryEntries: [newEntry, ...state.diaryEntries]
+          diaryEntries: [newEntry, ...(state.diaryEntries || [])]
         };
       }),
       
       removeDiaryEntry: (id) => set((state) => ({
-        diaryEntries: state.diaryEntries.filter(entry => entry.id !== id)
+        diaryEntries: (state.diaryEntries || []).filter(entry => entry.id !== id)
       })),
       
       recordMood: (mood, note) => set((state) => {
@@ -153,7 +153,7 @@ export const useUserStore = create<UserState>()(
           };
           
           return {
-            diaryEntries: [newEntry, ...state.diaryEntries]
+            diaryEntries: [newEntry, ...(state.diaryEntries || [])]
           };
         }
         
@@ -166,6 +166,10 @@ export const useUserStore = create<UserState>()(
 
       getRecentMoods: () => {
         const { diaryEntries } = get();
+        
+        if (!diaryEntries || diaryEntries.length === 0) {
+          return [];
+        }
         
         // Get entries from the last 7 days
         const now = new Date();

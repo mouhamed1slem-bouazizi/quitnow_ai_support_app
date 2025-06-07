@@ -2,97 +2,91 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { useUserStore } from '@/store/user-store';
 import { useThemeColors } from '@/constants/colors';
-import { MOODS } from '@/constants/moods';
-import { MoodType, MoodRecord } from '@/types/user';
+import { getMoodOption } from '@/constants/moods';
+import { MoodRecord } from '@/types/user';
 
 export default function MoodChart() {
   const colors = useThemeColors();
   const getRecentMoods = useUserStore(state => state.getRecentMoods);
   
-  // Get moods from the last 7 days
   const recentMoods = getRecentMoods();
   
-  // Create an array of the last 7 days
-  const days = [];
-  const today = new Date();
-  for (let i = 6; i >= 0; i--) {
-    const date = new Date(today);
-    date.setDate(today.getDate() - i);
-    days.push(date);
-  }
-  
-  // Format day labels
-  const getDayLabel = (date: Date) => {
+  // Get the last 4 days (including today)
+  const getDayLabels = () => {
+    const days = [];
     const today = new Date();
-    const yesterday = new Date(today);
-    yesterday.setDate(today.getDate() - 1);
     
-    if (date.toDateString() === today.toDateString()) {
-      return 'Today';
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return 'Yesterday';
-    } else {
-      return date.toLocaleDateString('en-US', { weekday: 'short' });
-    }
-  };
-  
-  // Get mood for a specific day
-  const getMoodForDay = (date: Date): MoodType | null => {
-    const dayStart = new Date(date);
-    dayStart.setHours(0, 0, 0, 0);
-    
-    const dayEnd = new Date(date);
-    dayEnd.setHours(23, 59, 59, 999);
-    
-    // Find the most recent mood entry for this day
-    const moodForDay = recentMoods.find(
-      record => {
-        const recordDate = new Date(record.timestamp);
-        return recordDate >= dayStart && recordDate <= dayEnd;
+    for (let i = 3; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(today.getDate() - i);
+      
+      let label = '';
+      if (i === 0) {
+        label = 'Today';
+      } else if (i === 1) {
+        label = 'Yesterday';
+      } else {
+        label = date.toLocaleDateString('en-US', { weekday: 'short' });
       }
-    );
+      
+      days.push({
+        date,
+        label
+      });
+    }
     
-    return moodForDay ? moodForDay.type : null;
+    return days;
   };
   
-  // Get color for a mood
-  const getMoodColor = (mood: MoodType | null) => {
-    if (!mood) return colors.cardDark;
-    return MOODS.find(m => m.id === mood)?.color || colors.cardDark;
-  };
+  const dayLabels = getDayLabels();
   
-  // Get emoji for a mood
-  const getMoodEmoji = (mood: MoodType | null) => {
-    if (!mood) return '?';
-    return MOODS.find(m => m.id === mood)?.emoji || '?';
+  // Group moods by day
+  const getMoodForDay = (date: Date) => {
+    if (!recentMoods || recentMoods.length === 0) return null;
+    
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+    
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+    
+    // Find the most recent mood for this day
+    const moodsForDay = recentMoods.filter(mood => {
+      const moodDate = new Date(mood.timestamp);
+      return moodDate >= startOfDay && moodDate <= endOfDay;
+    });
+    
+    return moodsForDay.length > 0 ? moodsForDay[0] : null;
   };
   
   return (
     <View style={[styles.container, { backgroundColor: colors.card }]}>
       <Text style={[styles.title, { color: colors.text }]}>Your Mood - Last 7 Days</Text>
       
-      <View style={styles.moodGrid}>
-        {days.map((day, index) => {
-          const mood = getMoodForDay(day);
-          const dayLabel = getDayLabel(day);
+      <View style={styles.moodRow}>
+        {dayLabels.map((day, index) => {
+          const mood = getMoodForDay(day.date);
+          const moodOption = mood ? getMoodOption(mood.type) : null;
           
           return (
             <View key={index} style={styles.dayColumn}>
               <Text style={[styles.dayLabel, { color: colors.textSecondary }]}>
-                {dayLabel}
+                {day.label}
               </Text>
               
               <View 
                 style={[
                   styles.moodCircle, 
-                  { backgroundColor: getMoodColor(mood) }
+                  { backgroundColor: moodOption ? moodOption.color : colors.inactive }
                 ]}
               >
-                <Text style={styles.moodEmoji}>{getMoodEmoji(mood)}</Text>
+                <Text style={styles.moodEmoji}>
+                  {moodOption ? moodOption.emoji : '?'}
+                </Text>
               </View>
               
-              <Text style={[styles.noData, { color: colors.textSecondary }]}>
-                {!mood ? 'No data' : ''}
+              <Text style={[styles.moodStatus, { color: colors.textSecondary }]}>
+                {mood ? moodOption?.label : 'No data'}
               </Text>
             </View>
           );
@@ -105,31 +99,31 @@ export default function MoodChart() {
 const styles = StyleSheet.create({
   container: {
     borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
+    padding: 16,
+    marginBottom: 20,
   },
   title: {
     fontSize: 20,
     fontWeight: '600',
-    marginBottom: 24,
+    marginBottom: 20,
   },
-  moodGrid: {
+  moodRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   dayColumn: {
     alignItems: 'center',
-    width: '14%',
+    flex: 1,
   },
   dayLabel: {
-    fontSize: 14,
-    marginBottom: 8,
+    fontSize: 16,
+    marginBottom: 12,
     textAlign: 'center',
   },
   moodCircle: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 8,
@@ -137,8 +131,8 @@ const styles = StyleSheet.create({
   moodEmoji: {
     fontSize: 24,
   },
-  noData: {
-    fontSize: 12,
+  moodStatus: {
+    fontSize: 14,
     textAlign: 'center',
   },
 });
