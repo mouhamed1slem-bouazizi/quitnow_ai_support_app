@@ -1,7 +1,7 @@
 import { Tabs } from 'expo-router';
 import { useColorScheme } from 'react-native';
 import { useThemeColors } from '@/constants/colors';
-import { Home, Activity, Award, Gamepad2, User, BookOpen } from 'lucide-react-native';
+import { Home, Activity, Award, Gamepad2, User, BookOpen, Flame } from 'lucide-react-native';
 import { useUserStore } from '@/store/user-store';
 
 export default function TabLayout() {
@@ -61,7 +61,7 @@ export default function TabLayout() {
         name="cravings"
         options={{
           title: 'Cravings',
-          tabBarIcon: ({ color }) => <Activity size={24} color={color} />,
+          tabBarIcon: ({ color }) => <Flame size={24} color={color} />,
         }}
       />
       <Tabs.Screen
