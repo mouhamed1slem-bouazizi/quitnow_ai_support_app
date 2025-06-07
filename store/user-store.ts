@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Profile, ThemeType, DiaryEntry, MoodType } from '@/types/user';
+import { Profile, ThemeType, DiaryEntry, MoodType, MoodRecord } from '@/types/user';
 
 interface ProgressMetrics {
   smokeFreeTime: {
@@ -29,6 +29,7 @@ interface UserState {
   addDiaryEntry: (content: string, mood: MoodType) => void;
   removeDiaryEntry: (id: string) => void;
   recordMood: (mood: MoodType, note?: string) => void;
+  getRecentMoods: (days: number) => MoodRecord[];
 }
 
 export const useUserStore = create<UserState>()(
@@ -155,6 +156,31 @@ export const useUserStore = create<UserState>()(
         
         return state;
       }),
+      
+      getRecentMoods: (days) => {
+        const { diaryEntries } = get();
+        const now = new Date();
+        const startDate = new Date(now);
+        startDate.setDate(now.getDate() - days);
+        
+        // Convert diary entries to mood records
+        const moodRecords: MoodRecord[] = diaryEntries
+          .filter(entry => {
+            const entryDate = new Date(entry.timestamp);
+            return entryDate >= startDate && entryDate <= now;
+          })
+          .map(entry => ({
+            id: entry.id,
+            timestamp: entry.timestamp,
+            type: entry.mood,
+            note: entry.content
+          }));
+        
+        // Sort by timestamp, newest first
+        return moodRecords.sort((a, b) => 
+          new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+        );
+      },
     }),
     {
       name: 'user-storage',
