@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Modal, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useUserStore } from '@/store/user-store';
-import { useThemeColors, ThemeType } from '@/constants/colors';
+import { useThemeColors } from '@/constants/colors';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar, DollarSign, User, Cigarette, Clock } from 'lucide-react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
@@ -10,7 +10,7 @@ import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/dat
 export default function OnboardingScreen() {
   const router = useRouter();
   const colors = useThemeColors();
-  const { setProfile, setOnboarded } = useUserStore();
+  const { setProfile, setOnboarded, theme } = useUserStore();
   
   // Set default quit date to yesterday
   const yesterday = new Date();
@@ -312,24 +312,45 @@ export default function OnboardingScreen() {
       </KeyboardAvoidingView>
       
       {/* Date Picker */}
-      {showDatePicker && (
+      {(showDatePicker && Platform.OS === 'ios') && (
         <DateTimePicker
           testID="dateTimePicker"
           value={quitDate}
           mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          display="spinner"
+          onChange={handleDateChange}
+          maximumDate={new Date()}
+        />
+      )}
+      
+      {(showDatePicker && Platform.OS === 'android') && (
+        <DateTimePicker
+          testID="dateTimePicker"
+          value={quitDate}
+          mode="date"
+          display="default"
           onChange={handleDateChange}
           maximumDate={new Date()}
         />
       )}
       
       {/* Time Picker */}
-      {showTimePicker && (
+      {(showTimePicker && Platform.OS === 'ios') && (
         <DateTimePicker
           testID="timeTimePicker"
           value={quitDate}
           mode="time"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          display="spinner"
+          onChange={handleTimeChange}
+        />
+      )}
+      
+      {(showTimePicker && Platform.OS === 'android') && (
+        <DateTimePicker
+          testID="timeTimePicker"
+          value={quitDate}
+          mode="time"
+          display="default"
           onChange={handleTimeChange}
         />
       )}

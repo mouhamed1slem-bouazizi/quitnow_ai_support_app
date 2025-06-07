@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Modal, Platform, Switch, useColorScheme, Pressable, Alert } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useUserStore } from '@/store/user-store';
-import { useThemeColors, ThemeType } from '@/constants/colors';
+import { useThemeColors } from '@/constants/colors';
 import { User, Calendar, DollarSign, Cigarette, LogOut, Save, Clock, Moon, Sun, Smartphone } from 'lucide-react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 
@@ -375,24 +375,45 @@ export default function ProfileScreen() {
         </Modal>
         
         {/* Date Picker */}
-        {showDatePicker && (
+        {(showDatePicker && Platform.OS === 'ios') && (
           <DateTimePicker
             testID="dateTimePicker"
             value={resetQuitDate}
             mode="date"
-            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            display="spinner"
+            onChange={handleDateChange}
+            maximumDate={new Date()}
+          />
+        )}
+        
+        {(showDatePicker && Platform.OS === 'android') && (
+          <DateTimePicker
+            testID="dateTimePicker"
+            value={resetQuitDate}
+            mode="date"
+            display="default"
             onChange={handleDateChange}
             maximumDate={new Date()}
           />
         )}
         
         {/* Time Picker */}
-        {showTimePicker && (
+        {(showTimePicker && Platform.OS === 'ios') && (
           <DateTimePicker
             testID="timeTimePicker"
             value={resetQuitDate}
             mode="time"
-            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            display="spinner"
+            onChange={handleTimeChange}
+          />
+        )}
+        
+        {(showTimePicker && Platform.OS === 'android') && (
+          <DateTimePicker
+            testID="timeTimePicker"
+            value={resetQuitDate}
+            mode="time"
+            display="default"
             onChange={handleTimeChange}
           />
         )}
