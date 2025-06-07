@@ -60,5 +60,7 @@ export const MOODS: MoodOption[] = [
 ];
 
 export const getMoodOption = (type: MoodType): MoodOption => {
-  return MOODS.find(option => option.id === type) || MOODS[7]; // Default to neutral
+  const foundMood = MOODS.find(option => option.id === type);
+  // Always return a valid mood option, defaulting to neutral if not found
+  return foundMood || MOODS[7]; // Default to neutral
 };

@@ -125,7 +125,8 @@ export default function DiaryScreen() {
             </View>
           ) : (
             diaryEntries.map(entry => {
-              const moodOption = getMoodOption(entry.mood);
+              // Safely get mood option with fallback to neutral if undefined
+              const moodOption = getMoodOption(entry.mood || 'neutral');
               
               return (
                 <View 
@@ -141,11 +142,11 @@ export default function DiaryScreen() {
                         <View 
                           style={[
                             styles.moodBadge, 
-                            { backgroundColor: moodOption.color }
+                            { backgroundColor: moodOption?.color || '#A9A9A9' }
                           ]}
                         >
-                          <Text style={styles.moodEmoji}>{moodOption.emoji}</Text>
-                          <Text style={styles.moodLabel}>{moodOption.label}</Text>
+                          <Text style={styles.moodEmoji}>{moodOption?.emoji || '😐'}</Text>
+                          <Text style={styles.moodLabel}>{moodOption?.label || 'Neutral'}</Text>
                         </View>
                       </View>
                     </View>

@@ -77,7 +77,7 @@ export default function MoodChart() {
               <View 
                 style={[
                   styles.moodCircle, 
-                  { backgroundColor: moodOption ? moodOption.color : colors.cardDark }
+                  { backgroundColor: moodOption ? moodOption.color : colors.card }
                 ]}
               >
                 <Text style={styles.moodEmoji}>
