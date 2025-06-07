@@ -25,7 +25,7 @@ export interface Profile {
   cigarettePrice: number;
   currency: string;
   goals: Goal[];
-  achievements: Achievement[];
+  achievements: string[]; // Changed from Achievement[] to string[] to store achievement IDs
 }
 
 export interface MoodEntry {
