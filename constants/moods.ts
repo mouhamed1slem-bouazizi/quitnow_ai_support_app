@@ -59,8 +59,21 @@ export const MOODS: MoodOption[] = [
   },
 ];
 
+// Default mood option to use as fallback
+const DEFAULT_MOOD: MoodOption = {
+  id: 'neutral',
+  label: 'Neutral',
+  emoji: '😐',
+  color: '#A9A9A9',
+};
+
 export const getMoodOption = (type: MoodType): MoodOption => {
+  // Handle undefined or invalid mood type
+  if (!type) {
+    return DEFAULT_MOOD;
+  }
+  
   const foundMood = MOODS.find(option => option.id === type);
   // Always return a valid mood option, defaulting to neutral if not found
-  return foundMood || MOODS[7]; // Default to neutral
+  return foundMood || DEFAULT_MOOD;
 };

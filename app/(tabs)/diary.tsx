@@ -26,7 +26,7 @@ export default function DiaryScreen() {
   const inputRef = useRef<TextInput>(null);
   
   // Ensure we always have an array, even if diaryEntries is undefined
-  const diaryEntries = useUserStore(state => state.diaryEntries) || [];
+  const diaryEntries = useUserStore(state => state.diaryEntries ?? []);
   const addDiaryEntry = useUserStore(state => state.addDiaryEntry);
   const removeDiaryEntry = useUserStore(state => state.removeDiaryEntry);
   

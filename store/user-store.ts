@@ -138,7 +138,7 @@ export const useUserStore = create<UserState>()(
         };
         
         // Ensure diaryEntries is always an array
-        const currentEntries = state.diaryEntries || [];
+        const currentEntries = state.diaryEntries ?? [];
         
         return {
           diaryEntries: [newEntry, ...currentEntries]
@@ -147,7 +147,7 @@ export const useUserStore = create<UserState>()(
       
       removeDiaryEntry: (id) => set((state) => ({
         // Ensure diaryEntries is always an array
-        diaryEntries: (state.diaryEntries || []).filter(entry => entry.id !== id)
+        diaryEntries: (state.diaryEntries ?? []).filter(entry => entry.id !== id)
       })),
       
       recordMood: (mood, note) => set((state) => {
@@ -162,7 +162,7 @@ export const useUserStore = create<UserState>()(
           };
           
           // Ensure diaryEntries is always an array
-          const currentEntries = state.diaryEntries || [];
+          const currentEntries = state.diaryEntries ?? [];
           
           return {
             diaryEntries: [newEntry, ...currentEntries]
@@ -209,13 +209,21 @@ export const useUserStore = create<UserState>()(
       // Add migrate function to handle state migration
       migrate: (persistedState: any, version) => {
         // If we're at the current version, just return the state
-        if (version === 1) return persistedState as UserState;
+        if (version === 1) {
+          // Ensure diaryEntries is always an array
+          return {
+            ...persistedState,
+            diaryEntries: Array.isArray(persistedState.diaryEntries) 
+              ? persistedState.diaryEntries 
+              : []
+          } as UserState;
+        }
         
         // Handle migration from older versions
-        // For now, just ensure diaryEntries is an array
         return {
+          ...initialState,
           ...persistedState,
-          diaryEntries: Array.isArray(persistedState.diaryEntries) 
+          diaryEntries: Array.isArray(persistedState?.diaryEntries) 
             ? persistedState.diaryEntries 
             : []
         } as UserState;
