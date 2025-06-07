@@ -45,11 +45,13 @@ export default function OnboardingScreen() {
   };
   
   const handleDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
+    // Close the picker for Android
     if (Platform.OS === 'android') {
       setShowDatePicker(false);
     }
     
-    if (selectedDate) {
+    // Only update if a date was actually selected
+    if (selectedDate && event.type === 'set') {
       // Update date while preserving time
       const newDate = new Date(quitDate);
       newDate.setFullYear(selectedDate.getFullYear());
@@ -60,11 +62,13 @@ export default function OnboardingScreen() {
   };
   
   const handleTimeChange = (event: DateTimePickerEvent, selectedTime?: Date) => {
+    // Close the picker for Android
     if (Platform.OS === 'android') {
       setShowTimePicker(false);
     }
     
-    if (selectedTime) {
+    // Only update if a time was actually selected
+    if (selectedTime && event.type === 'set') {
       // Update time while preserving date
       const newDate = new Date(quitDate);
       newDate.setHours(selectedTime.getHours());
@@ -337,7 +341,7 @@ export default function OnboardingScreen() {
                 display="spinner"
                 onChange={handleDateChange}
                 style={styles.iosPicker}
-                maximumDate={new Date()} // Allow selecting any date up to today
+                maximumDate={new Date()}
               />
             </View>
           </View>
@@ -382,7 +386,7 @@ export default function OnboardingScreen() {
           is24Hour={true}
           display="default"
           onChange={handleDateChange}
-          maximumDate={new Date()} // Allow selecting any date up to today
+          maximumDate={new Date()}
         />
       )}
       
