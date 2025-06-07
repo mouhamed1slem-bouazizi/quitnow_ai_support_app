@@ -25,7 +25,8 @@ export default function DiaryScreen() {
   const [selectedMood, setSelectedMood] = useState<MoodType>('neutral');
   const inputRef = useRef<TextInput>(null);
   
-  const diaryEntries = useUserStore(state => state.diaryEntries || []);
+  // Ensure we always have an array, even if diaryEntries is undefined
+  const diaryEntries = useUserStore(state => state.diaryEntries) || [];
   const addDiaryEntry = useUserStore(state => state.addDiaryEntry);
   const removeDiaryEntry = useUserStore(state => state.removeDiaryEntry);
   

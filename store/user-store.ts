@@ -34,14 +34,19 @@ interface UserState {
   getRecentMoods: () => MoodRecord[];
 }
 
+// Initial state to ensure diaryEntries is always an array
+const initialState = {
+  onboarded: false,
+  profile: null,
+  theme: 'system' as ThemeType,
+  diaryEntries: [] as DiaryEntry[],
+  cravingsHandled: 0,
+};
+
 export const useUserStore = create<UserState>()(
   persist(
     (set, get) => ({
-      onboarded: false,
-      profile: null,
-      theme: 'system' as ThemeType,
-      diaryEntries: [],
-      cravingsHandled: 0,
+      ...initialState,
       
       setOnboarded: (onboarded) => set({ onboarded }),
       
@@ -132,12 +137,16 @@ export const useUserStore = create<UserState>()(
           mood
         };
         
+        // Ensure diaryEntries is always an array
+        const currentEntries = state.diaryEntries || [];
+        
         return {
-          diaryEntries: [newEntry, ...(state.diaryEntries || [])]
+          diaryEntries: [newEntry, ...currentEntries]
         };
       }),
       
       removeDiaryEntry: (id) => set((state) => ({
+        // Ensure diaryEntries is always an array
         diaryEntries: (state.diaryEntries || []).filter(entry => entry.id !== id)
       })),
       
@@ -152,8 +161,11 @@ export const useUserStore = create<UserState>()(
             mood
           };
           
+          // Ensure diaryEntries is always an array
+          const currentEntries = state.diaryEntries || [];
+          
           return {
-            diaryEntries: [newEntry, ...(state.diaryEntries || [])]
+            diaryEntries: [newEntry, ...currentEntries]
           };
         }
         
@@ -167,6 +179,7 @@ export const useUserStore = create<UserState>()(
       getRecentMoods: () => {
         const { diaryEntries } = get();
         
+        // Ensure diaryEntries is always an array
         if (!diaryEntries || diaryEntries.length === 0) {
           return [];
         }
@@ -191,6 +204,8 @@ export const useUserStore = create<UserState>()(
     {
       name: 'user-storage',
       storage: createJSONStorage(() => AsyncStorage),
+      // Add version to handle migrations if needed
+      version: 1,
     }
   )
 );
