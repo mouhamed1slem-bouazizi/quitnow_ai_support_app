@@ -17,27 +17,42 @@ export default function ActivitySuggestionCard() {
   
   const [customSuggestion, setCustomSuggestion] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [lastActivityId, setLastActivityId] = useState<string | null>(null);
   
   const getNewActivity = () => {
     // Reset custom suggestion
     setCustomSuggestion(null);
     
-    // Get a new random activity from our list
-    let newIndex;
+    // Get a new random activity from our list, ensuring it's different from the current one
+    let newActivity;
     do {
-      newIndex = Math.floor(Math.random() * activities.length);
-    } while (activities[newIndex].id === currentActivity.id);
+      const randomIndex = Math.floor(Math.random() * activities.length);
+      newActivity = activities[randomIndex];
+    } while (newActivity.id === currentActivity.id);
     
-    setCurrentActivity(activities[newIndex]);
+    setCurrentActivity(newActivity);
+    setLastActivityId(newActivity.id);
   };
   
   const getAiSuggestion = async () => {
     setLoading(true);
     try {
+      // Add timestamp to ensure we get a fresh suggestion
+      const timestamp = new Date().getTime();
       const suggestion = await aiService.generateActivitySuggestion();
-      setCustomSuggestion(suggestion);
+      setCustomSuggestion(`${suggestion} (${timestamp})`);
     } catch (error) {
       console.error('Error getting AI suggestion:', error);
+      // Fallback suggestions with variety
+      const fallbackSuggestions = [
+        "Take 10 deep breaths, counting slowly to 5 on each inhale and exhale.",
+        "Drink a full glass of water slowly, focusing on each sip.",
+        "Do 20 jumping jacks to get your blood flowing.",
+        "Write down 3 reasons why you want to quit smoking.",
+        "Call or text a supportive friend for a quick chat."
+      ];
+      const randomSuggestion = fallbackSuggestions[Math.floor(Math.random() * fallbackSuggestions.length)];
+      setCustomSuggestion(randomSuggestion);
     } finally {
       setLoading(false);
     }
@@ -66,7 +81,9 @@ export default function ActivitySuggestionCard() {
       
       {customSuggestion ? (
         <View style={styles.aiSuggestionContainer}>
-          <Text style={[styles.aiSuggestion, { color: colors.text }]}>{customSuggestion}</Text>
+          <Text style={[styles.aiSuggestion, { color: colors.text }]}>
+            {customSuggestion.split(' (')[0]} {/* Remove the timestamp from display */}
+          </Text>
           <TouchableOpacity 
             style={styles.backButton} 
             onPress={getNewActivity}

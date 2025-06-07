@@ -8,6 +8,18 @@ import CravingActivityCard from '@/components/CravingActivityCard';
 import { aiService } from '@/services/ai-service';
 import { Cigarette, RefreshCw } from 'lucide-react-native';
 
+// Activity categories to ensure variety
+const ACTIVITY_CATEGORIES = [
+  'physical',
+  'mental',
+  'breathing',
+  'distraction',
+  'social',
+  'creative',
+  'mindfulness',
+  'relaxation'
+];
+
 export default function CravingsScreen() {
   const colors = useThemeColors();
   const { incrementCravingsHandled } = useUserStore();
@@ -17,25 +29,57 @@ export default function CravingsScreen() {
     title: string;
     description: string;
     imageUrl: string;
+    completed?: boolean;
   }>>([]);
+  
+  // Track used categories to avoid repetition
+  const [usedCategories, setUsedCategories] = useState<string[]>([]);
+
+  const getRandomCategory = () => {
+    // Filter out recently used categories unless all have been used
+    const availableCategories = 
+      usedCategories.length >= ACTIVITY_CATEGORIES.length 
+        ? ACTIVITY_CATEGORIES 
+        : ACTIVITY_CATEGORIES.filter(cat => !usedCategories.includes(cat));
+    
+    return availableCategories[Math.floor(Math.random() * availableCategories.length)];
+  };
 
   const fetchActivities = async () => {
     setLoading(true);
     try {
+      // Get two random categories that are different from each other
+      const category1 = getRandomCategory();
+      let category2;
+      do {
+        category2 = getRandomCategory();
+      } while (category2 === category1);
+      
+      // Update used categories
+      setUsedCategories(prev => {
+        const updated = [...prev, category1, category2];
+        // Keep only the most recent categories (up to the number of total categories)
+        return updated.slice(-ACTIVITY_CATEGORIES.length);
+      });
+      
+      // Generate activities with different categories
       const [activity1, activity2] = await Promise.all([
-        aiService.generateActivityWithImage(),
-        aiService.generateActivityWithImage()
+        aiService.generateActivityWithImage(category1),
+        aiService.generateActivityWithImage(category2)
       ]);
+      
+      // Add timestamp to ensure unique IDs
+      const timestamp = new Date().getTime();
       
       setActivities([
         {
-          id: '1',
+          id: `${timestamp}-1`,
           title: activity1.title,
           description: activity1.description,
           imageUrl: activity1.imageUrl
         },
         {
-          id: '2',
+          id: `${timestamp}-2`,
           title: activity2.title,
           description: activity2.description,
           imageUrl: activity2.imageUrl
@@ -49,19 +93,23 @@ export default function CravingsScreen() {
         [{ text: "OK" }]
       );
       
-      // Fallback activities if AI fails
+      // Fallback activities if AI fails - with timestamp to ensure unique images
+      const timestamp = new Date().getTime();
+      const randomSeed1 = Math.floor(Math.random() * 10000);
+      const randomSeed2 = Math.floor(Math.random() * 10000);
+      
       setActivities([
         {
-          id: '1',
+          id: `${timestamp}-1`,
           title: 'Deep Breathing Exercise',
           description: 'Take 10 deep breaths, inhaling through your nose for 4 counts and exhaling through your mouth for 6 counts. Focus on the sensation of air filling your lungs.',
-          imageUrl: 'https://image.pollinations.ai/prompt/Deep%20breathing%20exercise%2C%20meditation%2C%20calm%2C%20peaceful%2C%20high%20quality'
+          imageUrl: `https://image.pollinations.ai/prompt/Deep%20breathing%20exercise%2C%20meditation%2C%20calm%2C%20peaceful%2C%20high%20quality?seed=${randomSeed1}&random=${timestamp}`
         },
         {
-          id: '2',
+          id: `${timestamp}-2`,
           title: 'Quick Walk Outside',
           description: 'Step outside for a 5-minute walk. Focus on the sensations around you - the air on your skin, the sounds in your environment, and the rhythm of your steps.',
-          imageUrl: 'https://image.pollinations.ai/prompt/Person%20walking%20outside%2C%20nature%2C%20fresh%20air%2C%20healthy%20activity%2C%20high%20quality'
+          imageUrl: `https://image.pollinations.ai/prompt/Person%20walking%20outside%2C%20nature%2C%20fresh%20air%2C%20healthy%20activity%2C%20high%20quality?seed=${randomSeed2}&random=${timestamp}`
         }
       ]);
     } finally {
