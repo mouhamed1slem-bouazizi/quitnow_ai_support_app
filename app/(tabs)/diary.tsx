@@ -26,7 +26,7 @@ export default function DiaryScreen() {
   const inputRef = useRef<TextInput>(null);
   
   const { 
-    diaryEntries, 
+    diaryEntries = [], 
     addDiaryEntry, 
     removeDiaryEntry, 
     recordMood 

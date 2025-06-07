@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Profile, ThemeType } from '@/types/user';
+import { Profile, ThemeType, DiaryEntry, MoodType } from '@/types/user';
 
 interface ProgressMetrics {
   smokeFreeTime: {
@@ -18,6 +18,7 @@ interface UserState {
   onboarded: boolean;
   profile: Profile | null;
   theme: ThemeType;
+  diaryEntries: DiaryEntry[];
   setOnboarded: (onboarded: boolean) => void;
   setProfile: (profile: Profile) => void;
   updateProfile: (updates: Partial<Profile>) => void;
@@ -25,6 +26,9 @@ interface UserState {
   setTheme: (theme: ThemeType) => void;
   calculateProgress: () => ProgressMetrics;
   addAchievement: (achievementId: string) => void;
+  addDiaryEntry: (content: string, mood: MoodType) => void;
+  removeDiaryEntry: (id: string) => void;
+  recordMood: (mood: MoodType, note?: string) => void;
 }
 
 export const useUserStore = create<UserState>()(
@@ -33,6 +37,7 @@ export const useUserStore = create<UserState>()(
       onboarded: false,
       profile: null,
       theme: 'system' as ThemeType,
+      diaryEntries: [],
       
       setOnboarded: (onboarded) => set({ onboarded }),
       
@@ -53,11 +58,11 @@ export const useUserStore = create<UserState>()(
       setTheme: (theme) => set({ theme }),
       
       addAchievement: (achievementId) => set((state) => {
-        if (!state.profile) return state;
+        if (!state.profile) return { ...state };
         
         // Check if achievement already exists
         if (state.profile.achievements.includes(achievementId)) {
-          return state;
+          return { ...state };
         }
         
         // Add the achievement
@@ -114,6 +119,42 @@ export const useUserStore = create<UserState>()(
           moneySaved
         };
       },
+      
+      addDiaryEntry: (content, mood) => set((state) => {
+        const newEntry: DiaryEntry = {
+          id: Date.now().toString(),
+          timestamp: new Date().toISOString(),
+          content,
+          mood
+        };
+        
+        return {
+          diaryEntries: [newEntry, ...state.diaryEntries]
+        };
+      }),
+      
+      removeDiaryEntry: (id) => set((state) => ({
+        diaryEntries: state.diaryEntries.filter(entry => entry.id !== id)
+      })),
+      
+      recordMood: (mood, note) => set((state) => {
+        // Implementation depends on how you want to store mood data
+        // For now, we'll just add it as a diary entry if a note is provided
+        if (note) {
+          const newEntry: DiaryEntry = {
+            id: Date.now().toString(),
+            timestamp: new Date().toISOString(),
+            content: note,
+            mood
+          };
+          
+          return {
+            diaryEntries: [newEntry, ...state.diaryEntries]
+          };
+        }
+        
+        return state;
+      }),
     }),
     {
       name: 'user-storage',

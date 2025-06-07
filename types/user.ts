@@ -1,4 +1,5 @@
 export type ThemeType = 'light' | 'dark' | 'system';
+export type MoodType = 'great' | 'good' | 'neutral' | 'bad' | 'awful';
 
 export interface Goal {
   id: string;
@@ -10,12 +11,11 @@ export interface Goal {
   completedAt?: string;
 }
 
-export interface Achievement {
+export interface DiaryEntry {
   id: string;
-  title: string;
-  description: string;
-  icon: string;
-  unlockedAt: string;
+  timestamp: string;
+  content: string;
+  mood: MoodType;
 }
 
 export interface Profile {
@@ -25,7 +25,7 @@ export interface Profile {
   cigarettePrice: number;
   currency: string;
   goals: Goal[];
-  achievements: string[]; // Changed from Achievement[] to string[] to store achievement IDs
+  achievements: string[]; // IDs of achievements
 }
 
 export interface MoodEntry {
@@ -42,14 +42,6 @@ export interface CravingEntry {
   trigger?: string;
   duration?: number;
   note?: string;
-}
-
-export interface DiaryEntry {
-  id: string;
-  date: string;
-  content: string;
-  mood?: string;
-  tags?: string[];
 }
 
 export interface HealthMetric {
