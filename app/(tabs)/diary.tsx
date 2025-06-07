@@ -25,17 +25,9 @@ export default function DiaryScreen() {
   const [selectedMood, setSelectedMood] = useState<MoodType>('neutral');
   const inputRef = useRef<TextInput>(null);
   
-  const { 
-    diaryEntries = [], 
-    addDiaryEntry, 
-    removeDiaryEntry, 
-    recordMood 
-  } = useUserStore(state => ({
-    diaryEntries: state.diaryEntries || [],
-    addDiaryEntry: state.addDiaryEntry,
-    removeDiaryEntry: state.removeDiaryEntry,
-    recordMood: state.recordMood
-  }));
+  const diaryEntries = useUserStore(state => state.diaryEntries || []);
+  const addDiaryEntry = useUserStore(state => state.addDiaryEntry);
+  const removeDiaryEntry = useUserStore(state => state.removeDiaryEntry);
   
   const handleAddEntry = () => {
     if (diaryContent.trim() === '') {
@@ -125,7 +117,7 @@ export default function DiaryScreen() {
         <View style={styles.entriesContainer}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>Your Diary Entries</Text>
           
-          {!diaryEntries || diaryEntries.length === 0 ? (
+          {diaryEntries.length === 0 ? (
             <View style={[styles.emptyState, { backgroundColor: colors.card }]}>
               <Text style={[styles.emptyStateText, { color: colors.textSecondary }]}>
                 No diary entries yet. Start writing about your journey!

@@ -1,16 +1,19 @@
 import { Tabs } from 'expo-router';
 import { useColorScheme } from 'react-native';
 import { useThemeColors } from '@/constants/colors';
-import { Home, Activity, Award, Gamepad2, User, BookOpen, Flame } from 'lucide-react-native';
+import { Home, Activity, Award, Gamepad2, User, BookOpen, Wind } from 'lucide-react-native';
 import { useUserStore } from '@/store/user-store';
+import { useMemo } from 'react';
 
 export default function TabLayout() {
   const colors = useThemeColors();
-  const { theme } = useUserStore();
+  const theme = useUserStore(state => state.theme);
   const systemColorScheme = useColorScheme();
   
-  // Determine which theme to use
-  const effectiveTheme = theme === 'system' ? systemColorScheme : theme;
+  // Determine which theme to use - use useMemo to prevent infinite loops
+  const effectiveTheme = useMemo(() => {
+    return theme === 'system' ? systemColorScheme : theme;
+  }, [theme, systemColorScheme]);
 
   return (
     <Tabs
@@ -61,7 +64,7 @@ export default function TabLayout() {
         name="cravings"
         options={{
           title: 'Cravings',
-          tabBarIcon: ({ color }) => <Flame size={24} color={color} />,
+          tabBarIcon: ({ color }) => <Wind size={24} color={color} />,
         }}
       />
       <Tabs.Screen

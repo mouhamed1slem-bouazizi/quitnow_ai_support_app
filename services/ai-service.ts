@@ -34,7 +34,26 @@ const IMAGE_ENHANCERS = [
   "mindfulness practice, stress relief, vibrant colors, detailed illustration",
   "healthy habit, modern lifestyle, clean design, high resolution",
   "wellness technique, calm atmosphere, soft lighting, professional photography",
-  "health improvement, positive energy, bright colors, detailed rendering"
+  "health improvement, positive energy, bright colors, detailed rendering",
+  "self-care routine, peaceful environment, natural lighting, artistic style",
+  "wellness practice, serene setting, gentle colors, minimalist aesthetic",
+  "healthy activity, outdoor scene, fresh air, photorealistic style",
+  "mental health exercise, calming environment, soft focus, professional quality",
+  "stress management technique, tranquil scene, balanced composition, high detail"
+];
+
+// Additional image styles for even more variety
+const IMAGE_STYLES = [
+  "digital art style",
+  "watercolor painting style",
+  "photorealistic",
+  "minimalist illustration",
+  "vibrant colors",
+  "soft pastel tones",
+  "modern graphic design",
+  "clean line art",
+  "3D rendering",
+  "artistic photography"
 ];
 
 // Helper function to get a random item from an array
@@ -57,6 +76,8 @@ let lastCategory = '';
 let lastSystemPrompt = '';
 let lastUserPrompt = '';
 let lastImageEnhancer = '';
+let lastImageStyle = '';
+let lastActivityTitles: string[] = [];
 
 // AI service for generating text and images
 export const aiService = {
@@ -64,7 +85,7 @@ export const aiService = {
   generateMotivationalText: async (days: number): Promise<string> => {
     try {
       // Add randomization to the prompt
-      const adjectives = ["encouraging", "motivational", "uplifting", "inspiring", "positive"];
+      const adjectives = ["encouraging", "motivational", "uplifting", "inspiring", "positive", "supportive", "empowering"];
       const randomAdjective = getRandomItem(adjectives);
       
       const prompt = encodeURIComponent(
@@ -89,7 +110,7 @@ export const aiService = {
   generateActivitySuggestion: async (): Promise<string> => {
     try {
       // Add randomization to the prompt
-      const activityTypes = ["physical", "mental", "breathing", "distraction", "social"];
+      const activityTypes = ["physical", "mental", "breathing", "distraction", "social", "creative", "mindfulness"];
       const randomType = getRandomItem(activityTypes);
       
       const prompt = encodeURIComponent(
@@ -114,7 +135,7 @@ export const aiService = {
   generateHealthFact: async (): Promise<string> => {
     try {
       // Add randomization to the prompt
-      const factTypes = ["short-term benefits", "long-term benefits", "financial benefits", "social benefits", "negative effects of smoking"];
+      const factTypes = ["short-term benefits", "long-term benefits", "financial benefits", "social benefits", "negative effects of smoking", "psychological benefits", "physical improvements"];
       const randomFactType = getRandomItem(factTypes);
       
       const prompt = encodeURIComponent(
@@ -179,7 +200,7 @@ export const aiService = {
         },
         {
           role: "user",
-          content: `${enhancedUserPrompt} (request_id: ${timestamp})`
+          content: `${enhancedUserPrompt} Make sure it's unique and different from these previous activities: ${lastActivityTitles.join(", ")}. (request_id: ${timestamp})`
         }
       ];
       
@@ -212,15 +233,21 @@ export const aiService = {
         };
       }
       
-      // Select an image enhancer, ensuring it's different from the last one
+      // Update last activity titles to avoid repetition
+      lastActivityTitles = [...lastActivityTitles, activityData.title].slice(-5);
+      
+      // Select an image enhancer and style, ensuring they're different from the last ones
       const imageEnhancer = getRandomItemExcept(IMAGE_ENHANCERS, lastImageEnhancer);
       lastImageEnhancer = imageEnhancer;
       
+      const imageStyle = getRandomItemExcept(IMAGE_STYLES, lastImageStyle);
+      lastImageStyle = imageStyle;
+      
       // Generate image using Pollinations AI based on the activity title and category
-      // Add timestamp and random number to prevent caching
-      const randomSeed = Math.floor(Math.random() * 10000);
-      const imagePrompt = encodeURIComponent(`${activityData.title}, ${category} activity, ${imageEnhancer}, seed:${randomSeed}`);
-      const imageUrl = `https://image.pollinations.ai/prompt/${imagePrompt}?random=${timestamp}`;
+      // Add timestamp, random seed, and style to ensure uniqueness
+      const randomSeed = Math.floor(Math.random() * 100000);
+      const imagePrompt = encodeURIComponent(`${activityData.title}, ${category} activity, ${imageEnhancer}, ${imageStyle}`);
+      const imageUrl = `https://image.pollinations.ai/prompt/${imagePrompt}?seed=${randomSeed}&random=${timestamp}`;
       
       return {
         title: activityData.title,
@@ -235,42 +262,72 @@ export const aiService = {
         {
           title: "Deep Breathing Exercise",
           description: "Take 10 deep breaths, inhaling through your nose for 4 counts and exhaling through your mouth for 6 counts. This helps reduce stress and shift focus away from cravings.",
-          imageUrl: `https://image.pollinations.ai/prompt/Deep%20breathing%20exercise%2C%20meditation%2C%20calm%2C%20peaceful%2C%20high%20quality?random=${new Date().getTime()}`
+          imageUrl: `https://image.pollinations.ai/prompt/Deep%20breathing%20exercise%2C%20meditation%2C%20calm%2C%20peaceful%2C%20high%20quality?random=${new Date().getTime()}&seed=${Math.random() * 10000}`
         },
         {
           title: "Quick Walk Outside",
           description: "Step outside for a 5-minute walk. Focus on the sensations around you - the air on your skin, the sounds in your environment, and the rhythm of your steps.",
-          imageUrl: `https://image.pollinations.ai/prompt/Person%20walking%20outside%2C%20nature%2C%20fresh%20air%2C%20healthy%20activity%2C%20high%20quality?random=${new Date().getTime()}`
+          imageUrl: `https://image.pollinations.ai/prompt/Person%20walking%20outside%2C%20nature%2C%20fresh%20air%2C%20healthy%20activity%2C%20high%20quality?random=${new Date().getTime()}&seed=${Math.random() * 10000}`
         },
         {
           title: "Drink Water Mindfully",
           description: "Slowly drink a full glass of water, focusing on the sensation of each sip. This provides a moment of mindfulness and helps flush toxins from your body.",
-          imageUrl: `https://image.pollinations.ai/prompt/Glass%20of%20water%2C%20hydration%2C%20mindfulness%2C%20healthy%20habit%2C%20high%20quality?random=${new Date().getTime()}`
+          imageUrl: `https://image.pollinations.ai/prompt/Glass%20of%20water%2C%20hydration%2C%20mindfulness%2C%20healthy%20habit%2C%20high%20quality?random=${new Date().getTime()}&seed=${Math.random() * 10000}`
         },
         {
           title: "Hand-Eye Coordination Game",
           description: "Play a quick game on your phone that requires focus and coordination. This redirects your attention and gives your hands something to do besides reaching for a cigarette.",
-          imageUrl: `https://image.pollinations.ai/prompt/Mobile%20game%2C%20focus%2C%20concentration%2C%20distraction%20activity%2C%20high%20quality?random=${new Date().getTime()}`
+          imageUrl: `https://image.pollinations.ai/prompt/Mobile%20game%2C%20focus%2C%20concentration%2C%20distraction%20activity%2C%20high%20quality?random=${new Date().getTime()}&seed=${Math.random() * 10000}`
         },
         {
           title: "Progressive Muscle Relaxation",
           description: "Tense and then release each muscle group in your body, starting from your toes and working up to your head. This reduces physical tension associated with cravings.",
-          imageUrl: `https://image.pollinations.ai/prompt/Relaxation%20technique%2C%20calm%20body%2C%20stress%20relief%2C%20peaceful%2C%20high%20quality?random=${new Date().getTime()}`
+          imageUrl: `https://image.pollinations.ai/prompt/Relaxation%20technique%2C%20calm%20body%2C%20stress%20relief%2C%20peaceful%2C%20high%20quality?random=${new Date().getTime()}&seed=${Math.random() * 10000}`
         },
         {
           title: "Write a Quick Gratitude List",
           description: "Take 2 minutes to write down 3 things you're grateful for today. This shifts your focus to positive aspects of life and away from cravings.",
-          imageUrl: `https://image.pollinations.ai/prompt/Gratitude%20journal%2C%20writing%2C%20positive%20thinking%2C%20mindfulness%2C%20high%20quality?random=${new Date().getTime()}`
+          imageUrl: `https://image.pollinations.ai/prompt/Gratitude%20journal%2C%20writing%2C%20positive%20thinking%2C%20mindfulness%2C%20high%20quality?random=${new Date().getTime()}&seed=${Math.random() * 10000}`
         },
         {
           title: "Stretch Your Body",
           description: "Do a quick full-body stretch routine. Reach for the sky, touch your toes, and twist gently from side to side. Physical movement helps reduce craving intensity.",
-          imageUrl: `https://image.pollinations.ai/prompt/Person%20stretching%2C%20yoga%2C%20flexibility%2C%20wellness%2C%20high%20quality?random=${new Date().getTime()}`
+          imageUrl: `https://image.pollinations.ai/prompt/Person%20stretching%2C%20yoga%2C%20flexibility%2C%20wellness%2C%20high%20quality?random=${new Date().getTime()}&seed=${Math.random() * 10000}`
+        },
+        {
+          title: "Play with a Fidget Toy",
+          description: "Use a stress ball, fidget spinner, or other tactile object to keep your hands busy. The sensory stimulation can help distract your mind from cravings.",
+          imageUrl: `https://image.pollinations.ai/prompt/Fidget%20toy%2C%20stress%20relief%2C%20hand%20activity%2C%20distraction%20technique%2C%20high%20quality?random=${new Date().getTime()}&seed=${Math.random() * 10000}`
+        },
+        {
+          title: "Listen to Upbeat Music",
+          description: "Play your favorite energetic song and focus on the rhythm and lyrics. Music can shift your mood and provide a positive distraction from cravings.",
+          imageUrl: `https://image.pollinations.ai/prompt/Person%20listening%20to%20music%2C%20headphones%2C%20enjoyment%2C%20distraction%20activity%2C%20high%20quality?random=${new Date().getTime()}&seed=${Math.random() * 10000}`
+        },
+        {
+          title: "Quick Cleaning Task",
+          description: "Choose one small area to clean or organize for 5 minutes. This productive activity keeps your hands busy and gives you a sense of accomplishment.",
+          imageUrl: `https://image.pollinations.ai/prompt/Person%20organizing%20desk%2C%20cleaning%2C%20productive%20activity%2C%20focus%2C%20high%20quality?random=${new Date().getTime()}&seed=${Math.random() * 10000}`
         }
       ];
       
-      const randomIndex = Math.floor(Math.random() * fallbackActivities.length);
-      return fallbackActivities[randomIndex];
+      // Ensure we don't repeat fallback activities
+      let availableActivities = fallbackActivities.filter(activity => 
+        !lastActivityTitles.includes(activity.title)
+      );
+      
+      // If all have been used, reset and use any
+      if (availableActivities.length === 0) {
+        availableActivities = fallbackActivities;
+      }
+      
+      const randomIndex = Math.floor(Math.random() * availableActivities.length);
+      const selectedActivity = availableActivities[randomIndex];
+      
+      // Update last activity titles
+      lastActivityTitles = [...lastActivityTitles, selectedActivity.title].slice(-5);
+      
+      return selectedActivity;
     }
   },
   
@@ -279,47 +336,53 @@ export const aiService = {
     let prompt: string;
     
     // Add randomization to the prompts
-    const randomSeed = Math.floor(Math.random() * 10000);
+    const randomSeed = Math.floor(Math.random() * 100000);
     const timestamp = new Date().getTime();
+    const randomStyle = getRandomItem(IMAGE_STYLES);
     
     if (days < 7) {
       const earlyPrompts = [
         "A small green sprout emerging from soil, symbolizing new beginnings and quitting smoking",
         "A tiny seedling breaking through earth, representing the start of a smoke-free journey",
-        "A fresh green shoot growing from the ground, symbolizing the early days of quitting smoking"
+        "A fresh green shoot growing from the ground, symbolizing the early days of quitting smoking",
+        "A delicate sprout with first leaves, representing the beginning of a healthy lifestyle"
       ];
       prompt = getRandomItem(earlyPrompts);
     } else if (days < 30) {
       const weekPrompts = [
         "A growing plant with small leaves, representing progress in quitting smoking",
         "A young plant with developing foliage, showing the journey of becoming smoke-free",
-        "A budding plant with fresh green leaves, symbolizing weeks without smoking"
+        "A budding plant with fresh green leaves, symbolizing weeks without smoking",
+        "A small plant reaching toward sunlight, representing growth in a smoke-free life"
       ];
       prompt = getRandomItem(weekPrompts);
     } else if (days < 90) {
       const monthPrompts = [
         "A healthy plant with many leaves, showing significant progress in quitting smoking",
         "A thriving plant with abundant foliage, representing months of being smoke-free",
-        "A flourishing plant with lush greenery, symbolizing the benefits of quitting smoking"
+        "A flourishing plant with lush greenery, symbolizing the benefits of quitting smoking",
+        "A vibrant plant with strong stems, showing resilience in the quit smoking journey"
       ];
       prompt = getRandomItem(monthPrompts);
     } else if (days < 180) {
       const quarterPrompts = [
         "A small tree with strong branches, symbolizing months of being smoke-free",
         "A young tree with developing branches and leaves, representing a significant smoke-free journey",
-        "A growing tree with sturdy trunk, showing the strength gained from quitting smoking"
+        "A growing tree with sturdy trunk, showing the strength gained from quitting smoking",
+        "A sapling becoming a tree, representing transformation after quitting smoking"
       ];
       prompt = getRandomItem(quarterPrompts);
     } else {
       const longTermPrompts = [
         "A large, healthy tree with abundant foliage, representing a long-term smoke-free life",
         "A majestic tree with deep roots and full canopy, symbolizing the lasting benefits of quitting smoking",
-        "A magnificent tree in full bloom, showing the transformation achieved by staying smoke-free"
+        "A magnificent tree in full bloom, showing the transformation achieved by staying smoke-free",
+        "A mature tree providing shade and oxygen, symbolizing the positive impact of quitting smoking"
       ];
       prompt = getRandomItem(longTermPrompts);
     }
     
-    return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?seed=${randomSeed}&random=${timestamp}`;
+    return `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt + ", " + randomStyle)}?seed=${randomSeed}&random=${timestamp}`;
   },
   
   // Generate achievement celebration image URL
@@ -330,11 +393,16 @@ export const aiService = {
       "watercolor painting",
       "modern illustration",
       "vibrant graphic design",
-      "minimalist art"
+      "minimalist art",
+      "3D rendering",
+      "photorealistic style",
+      "comic book style",
+      "abstract art",
+      "pop art style"
     ];
     
     const randomStyle = getRandomItem(celebrationStyles);
-    const randomSeed = Math.floor(Math.random() * 10000);
+    const randomSeed = Math.floor(Math.random() * 100000);
     const timestamp = new Date().getTime();
     
     const prompt = encodeURIComponent(

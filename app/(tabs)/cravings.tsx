@@ -22,7 +22,7 @@ const ACTIVITY_CATEGORIES = [
 
 export default function CravingsScreen() {
   const colors = useThemeColors();
-  const { incrementCravingsHandled } = useUserStore();
+  const incrementCravingsHandled = useUserStore(state => state.incrementCravingsHandled);
   const [loading, setLoading] = useState(false);
   const [activities, setActivities] = useState<Array<{
     id: string;

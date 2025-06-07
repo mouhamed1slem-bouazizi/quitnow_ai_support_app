@@ -1,5 +1,6 @@
 import { useColorScheme } from 'react-native';
 import { useUserStore } from '@/store/user-store';
+import { useMemo } from 'react';
 
 // Define the theme colors
 const lightColors = {
@@ -59,17 +60,20 @@ export type ThemeColors = ColorType & {
 
 export function useThemeColors(): ThemeColors {
   const systemColorScheme = useColorScheme();
-  const { theme } = useUserStore();
+  const theme = useUserStore(state => state.theme);
   
-  // Determine which theme to use
-  const effectiveTheme = theme === 'system' ? systemColorScheme || 'light' : theme || 'light';
-  const colors = effectiveTheme === 'dark' ? darkColors : lightColors;
-  
-  // Add theme property to the returned colors object
-  return {
-    ...colors,
-    theme: theme || 'light'
-  };
+  // Use useMemo to cache the result and prevent infinite loops
+  return useMemo(() => {
+    // Determine which theme to use
+    const effectiveTheme = theme === 'system' ? systemColorScheme || 'light' : theme || 'light';
+    const colors = effectiveTheme === 'dark' ? darkColors : lightColors;
+    
+    // Add theme property to the returned colors object
+    return {
+      ...colors,
+      theme: theme || 'light'
+    };
+  }, [systemColorScheme, theme]);
 }
 
 // Export default colors object for backward compatibility
