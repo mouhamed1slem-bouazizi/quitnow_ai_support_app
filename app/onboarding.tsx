@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Modal, Pressable, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Modal, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useUserStore } from '@/store/user-store';
 import { useThemeColors } from '@/constants/colors';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar, DollarSign, User, Cigarette, Clock } from 'lucide-react-native';
-import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function OnboardingScreen() {
   const router = useRouter();
@@ -48,40 +48,40 @@ export default function OnboardingScreen() {
     setStep(step - 1);
   };
   
-  const handleDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
-    // Close the picker for Android
+  const handleDateChange = (event, selectedDate) => {
+    const currentDate = selectedDate || quitDate;
+    
     if (Platform.OS === 'android') {
       setShowDatePicker(false);
     }
     
-    // Only update if a date was actually selected
-    if (selectedDate && event.type === 'set') {
-      // Create a new date object to avoid reference issues
-      const newDate = new Date(quitDate.getTime());
-      newDate.setFullYear(selectedDate.getFullYear());
-      newDate.setMonth(selectedDate.getMonth());
-      newDate.setDate(selectedDate.getDate());
+    if (selectedDate) {
+      // Create a new date object with the selected date but keep the current time
+      const newDate = new Date(quitDate);
+      newDate.setFullYear(currentDate.getFullYear());
+      newDate.setMonth(currentDate.getMonth());
+      newDate.setDate(currentDate.getDate());
       setQuitDate(newDate);
     }
   };
   
-  const handleTimeChange = (event: DateTimePickerEvent, selectedTime?: Date) => {
-    // Close the picker for Android
+  const handleTimeChange = (event, selectedTime) => {
+    const currentTime = selectedTime || quitDate;
+    
     if (Platform.OS === 'android') {
       setShowTimePicker(false);
     }
     
-    // Only update if a time was actually selected
-    if (selectedTime && event.type === 'set') {
-      // Create a new date object to avoid reference issues
-      const newDate = new Date(quitDate.getTime());
-      newDate.setHours(selectedTime.getHours());
-      newDate.setMinutes(selectedTime.getMinutes());
+    if (selectedTime) {
+      // Create a new date object with the current date but selected time
+      const newDate = new Date(quitDate);
+      newDate.setHours(currentTime.getHours());
+      newDate.setMinutes(currentTime.getMinutes());
       setQuitDate(newDate);
     }
   };
   
-  const formatDate = (date: Date) => {
+  const formatDate = (date) => {
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -89,26 +89,11 @@ export default function OnboardingScreen() {
     });
   };
   
-  const formatTime = (date: Date) => {
+  const formatTime = (date) => {
     return date.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
     });
-  };
-  
-  const openDatePicker = () => {
-    setShowDatePicker(true);
-    setShowTimePicker(false);
-  };
-  
-  const openTimePicker = () => {
-    setShowTimePicker(true);
-    setShowDatePicker(false);
-  };
-  
-  const closePicker = () => {
-    setShowDatePicker(false);
-    setShowTimePicker(false);
   };
   
   return (
@@ -276,27 +261,27 @@ export default function OnboardingScreen() {
               <Text style={[styles.stepTitle, { color: colors.text }]}>When did you quit smoking?</Text>
               
               <View style={styles.dateTimeContainer}>
-                <Pressable 
+                <TouchableOpacity 
                   style={[
                     styles.dateTimeButton, 
                     { backgroundColor: colors.background, borderColor: colors.inactive }
                   ]}
-                  onPress={openDatePicker}
+                  onPress={() => setShowDatePicker(true)}
                 >
                   <Calendar size={20} color={colors.primary} style={styles.dateTimeIcon} />
                   <Text style={[styles.dateTimeText, { color: colors.text }]}>{formatDate(quitDate)}</Text>
-                </Pressable>
+                </TouchableOpacity>
                 
-                <Pressable 
+                <TouchableOpacity 
                   style={[
                     styles.dateTimeButton, 
                     { backgroundColor: colors.background, borderColor: colors.inactive }
                   ]}
-                  onPress={openTimePicker}
+                  onPress={() => setShowTimePicker(true)}
                 >
                   <Clock size={20} color={colors.primary} style={styles.dateTimeIcon} />
                   <Text style={[styles.dateTimeText, { color: colors.text }]}>{formatTime(quitDate)}</Text>
-                </Pressable>
+                </TouchableOpacity>
               </View>
               
               <Text style={[styles.dateTimeHint, { color: colors.textSecondary }]}>
@@ -322,88 +307,27 @@ export default function OnboardingScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
       
-      {/* Date Picker for iOS */}
-      {Platform.OS === 'ios' && (
-        <Modal
-          transparent={true}
-          animationType="slide"
-          visible={showDatePicker}
-          onRequestClose={closePicker}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
-              <View style={[styles.pickerHeader, { borderBottomColor: colors.inactive }]}>
-                <Text style={[styles.pickerTitle, { color: colors.text }]}>Select Date</Text>
-                <TouchableOpacity onPress={closePicker}>
-                  <Text style={[styles.pickerDone, { color: colors.primary }]}>Done</Text>
-                </TouchableOpacity>
-              </View>
-              <DateTimePicker
-                testID="dateTimePicker"
-                value={quitDate}
-                mode="date"
-                display="spinner"
-                onChange={handleDateChange}
-                style={styles.iosPicker}
-                maximumDate={new Date()}
-                themeVariant={colors.theme === 'dark' ? 'dark' : 'light'}
-              />
-            </View>
-          </View>
-        </Modal>
-      )}
-      
-      {/* Time Picker for iOS */}
-      {Platform.OS === 'ios' && (
-        <Modal
-          transparent={true}
-          animationType="slide"
-          visible={showTimePicker}
-          onRequestClose={closePicker}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
-              <View style={[styles.pickerHeader, { borderBottomColor: colors.inactive }]}>
-                <Text style={[styles.pickerTitle, { color: colors.text }]}>Select Time</Text>
-                <TouchableOpacity onPress={closePicker}>
-                  <Text style={[styles.pickerDone, { color: colors.primary }]}>Done</Text>
-                </TouchableOpacity>
-              </View>
-              <DateTimePicker
-                testID="timeTimePicker"
-                value={quitDate}
-                mode="time"
-                display="spinner"
-                onChange={handleTimeChange}
-                style={styles.iosPicker}
-                themeVariant={colors.theme === 'dark' ? 'dark' : 'light'}
-              />
-            </View>
-          </View>
-        </Modal>
-      )}
-      
-      {/* Date Picker for Android */}
-      {Platform.OS === 'android' && showDatePicker && (
+      {/* Date Picker */}
+      {showDatePicker && (
         <DateTimePicker
           testID="dateTimePicker"
           value={quitDate}
           mode="date"
           is24Hour={true}
-          display="default"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
           onChange={handleDateChange}
           maximumDate={new Date()}
         />
       )}
       
-      {/* Time Picker for Android */}
-      {Platform.OS === 'android' && showTimePicker && (
+      {/* Time Picker */}
+      {showTimePicker && (
         <DateTimePicker
           testID="timeTimePicker"
           value={quitDate}
           mode="time"
           is24Hour={false}
-          display="default"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
           onChange={handleTimeChange}
         />
       )}
@@ -565,35 +489,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     marginBottom: 24,
-  },
-  modalOverlay: {
-    flex: 1,
-    justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalContent: {
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    paddingBottom: 20,
-  },
-  pickerHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-  },
-  pickerTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-  },
-  pickerDone: {
-    fontSize: 16,
-    fontWeight: '500',
-  },
-  iosPicker: {
-    height: 200,
-    width: '100%',
   },
 });
