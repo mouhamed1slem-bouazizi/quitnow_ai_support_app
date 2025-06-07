@@ -389,7 +389,7 @@ export default function ProfileScreen() {
                   display="spinner"
                   onChange={handleDateChange}
                   style={styles.iosPicker}
-                  // Removed maximumDate to allow selecting any date in the past
+                  maximumDate={new Date()} // Allow selecting any date up to today
                 />
               </View>
             </View>
@@ -434,7 +434,7 @@ export default function ProfileScreen() {
             is24Hour={true}
             display="default"
             onChange={handleDateChange}
-            // Removed maximumDate to allow selecting any date in the past
+            maximumDate={new Date()} // Allow selecting any date up to today
           />
         )}
         
