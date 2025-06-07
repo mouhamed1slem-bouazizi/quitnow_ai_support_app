@@ -374,48 +374,92 @@ export default function ProfileScreen() {
           </View>
         </Modal>
         
-        {/* Date Picker */}
-        {(showDatePicker && Platform.OS === 'ios') && (
-          <DateTimePicker
-            testID="dateTimePicker"
-            value={resetQuitDate}
-            mode="date"
-            display="spinner"
-            onChange={handleDateChange}
-            maximumDate={new Date()}
-          />
+        {/* Date Picker for iOS and Android */}
+        {showDatePicker && (
+          <>
+            {Platform.OS === 'ios' ? (
+              <Modal
+                visible={showDatePicker}
+                transparent={true}
+                animationType="slide"
+              >
+                <View style={styles.pickerModalOverlay}>
+                  <View style={[styles.pickerModalContent, { backgroundColor: colors.background }]}>
+                    <View style={[styles.pickerHeader, { borderBottomColor: colors.inactive }]}>
+                      <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                        <Text style={[styles.pickerCancel, { color: colors.textSecondary }]}>Cancel</Text>
+                      </TouchableOpacity>
+                      <Text style={[styles.pickerTitle, { color: colors.text }]}>Select Date</Text>
+                      <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                        <Text style={[styles.pickerDone, { color: colors.primary }]}>Done</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <DateTimePicker
+                      testID="dateTimePicker"
+                      value={resetQuitDate}
+                      mode="date"
+                      display="spinner"
+                      onChange={handleDateChange}
+                      maximumDate={new Date()}
+                      style={styles.picker}
+                    />
+                  </View>
+                </View>
+              </Modal>
+            ) : (
+              <DateTimePicker
+                testID="dateTimePicker"
+                value={resetQuitDate}
+                mode="date"
+                display="default"
+                onChange={handleDateChange}
+                maximumDate={new Date()}
+              />
+            )}
+          </>
         )}
         
-        {(showDatePicker && Platform.OS === 'android') && (
-          <DateTimePicker
-            testID="dateTimePicker"
-            value={resetQuitDate}
-            mode="date"
-            display="default"
-            onChange={handleDateChange}
-            maximumDate={new Date()}
-          />
-        )}
-        
-        {/* Time Picker */}
-        {(showTimePicker && Platform.OS === 'ios') && (
-          <DateTimePicker
-            testID="timeTimePicker"
-            value={resetQuitDate}
-            mode="time"
-            display="spinner"
-            onChange={handleTimeChange}
-          />
-        )}
-        
-        {(showTimePicker && Platform.OS === 'android') && (
-          <DateTimePicker
-            testID="timeTimePicker"
-            value={resetQuitDate}
-            mode="time"
-            display="default"
-            onChange={handleTimeChange}
-          />
+        {/* Time Picker for iOS and Android */}
+        {showTimePicker && (
+          <>
+            {Platform.OS === 'ios' ? (
+              <Modal
+                visible={showTimePicker}
+                transparent={true}
+                animationType="slide"
+              >
+                <View style={styles.pickerModalOverlay}>
+                  <View style={[styles.pickerModalContent, { backgroundColor: colors.background }]}>
+                    <View style={[styles.pickerHeader, { borderBottomColor: colors.inactive }]}>
+                      <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                        <Text style={[styles.pickerCancel, { color: colors.textSecondary }]}>Cancel</Text>
+                      </TouchableOpacity>
+                      <Text style={[styles.pickerTitle, { color: colors.text }]}>Select Time</Text>
+                      <TouchableOpacity onPress={() => setShowTimePicker(false)}>
+                        <Text style={[styles.pickerDone, { color: colors.primary }]}>Done</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <DateTimePicker
+                      testID="timeTimePicker"
+                      value={resetQuitDate}
+                      mode="time"
+                      display="spinner"
+                      onChange={handleTimeChange}
+                      style={styles.picker}
+                    />
+                  </View>
+                </View>
+              </Modal>
+            ) : (
+              <DateTimePicker
+                testID="timeTimePicker"
+                value={resetQuitDate}
+                mode="time"
+                display="default"
+                onChange={handleTimeChange}
+              />
+            )}
+          </>
         )}
       </ScrollView>
     </>
@@ -671,7 +715,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0, 0, 0, 0.1)',
   },
   pickerTitle: {
     fontSize: 16,

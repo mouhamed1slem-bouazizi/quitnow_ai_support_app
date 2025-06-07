@@ -38,6 +38,7 @@ export interface Achievement {
   id: string;
   title: string;
   description: string;
+  days: number;
   icon: string;
   unlockedAt?: string;
 }

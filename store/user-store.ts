@@ -59,15 +59,16 @@ export const useUserStore = create<UserState>()(
       setTheme: (theme) => set({ theme }),
       
       addAchievement: (achievementId) => set((state) => {
-        if (!state.profile) return { ...state };
+        if (!state.profile) return state;
         
         // Check if achievement already exists
         if (state.profile.achievements.includes(achievementId)) {
-          return { ...state };
+          return state;
         }
         
         // Add the achievement
         return {
+          ...state,
           profile: {
             ...state.profile,
             achievements: [...state.profile.achievements, achievementId]
