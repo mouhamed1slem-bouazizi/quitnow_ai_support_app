@@ -12,7 +12,7 @@ export default function ProfileScreen() {
   const { profile, updateProfile, resetProgress, theme, setTheme } = useUserStore();
   
   const [isEditing, setIsEditing] = useState(false);
-  const [editedName, setEditedName] = useState(profile?.name || '');
+  const [editedName, setEditedName] = useState(profile?.name || "");
   const [editedCigarettesPerDay, setEditedCigarettesPerDay] = useState(
     profile?.cigarettesPerDay?.toString() || '20'
   );

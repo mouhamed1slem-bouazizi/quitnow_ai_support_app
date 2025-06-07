@@ -11,10 +11,10 @@ const { width } = Dimensions.get('window');
 export default function ProgressCard() {
   const colors = useThemeColors();
   const { profile, calculateProgress } = useUserStore();
-  const progress = calculateProgress();
   
   if (!profile) return null;
   
+  const progress = calculateProgress();
   const { smokeFreeTime, cigarettesAvoided, moneySaved } = progress;
   const totalDays = smokeFreeTime.days;
   
