@@ -19,6 +19,7 @@ interface UserState {
   profile: Profile | null;
   theme: ThemeType;
   diaryEntries: DiaryEntry[];
+  cravingsHandled: number;
   setOnboarded: (onboarded: boolean) => void;
   setProfile: (profile: Profile) => void;
   updateProfile: (updates: Partial<Profile>) => void;
@@ -29,6 +30,8 @@ interface UserState {
   addDiaryEntry: (content: string, mood: MoodType) => void;
   removeDiaryEntry: (id: string) => void;
   recordMood: (mood: MoodType, note?: string) => void;
+  incrementCravingsHandled: () => void;
+  getRecentMoods: () => MoodRecord[];
 }
 
 export const useUserStore = create<UserState>()(
@@ -38,6 +41,7 @@ export const useUserStore = create<UserState>()(
       profile: null,
       theme: 'system' as ThemeType,
       diaryEntries: [],
+      cravingsHandled: 0,
       
       setOnboarded: (onboarded) => set({ onboarded }),
       
@@ -155,6 +159,29 @@ export const useUserStore = create<UserState>()(
         
         return state;
       }),
+
+      incrementCravingsHandled: () => set((state) => ({
+        cravingsHandled: state.cravingsHandled + 1
+      })),
+
+      getRecentMoods: () => {
+        const { diaryEntries } = get();
+        
+        // Get entries from the last 7 days
+        const now = new Date();
+        const sevenDaysAgo = new Date(now);
+        sevenDaysAgo.setDate(now.getDate() - 7);
+        
+        // Filter entries by date and map to mood records
+        const recentMoods: MoodRecord[] = diaryEntries
+          .filter(entry => new Date(entry.timestamp) >= sevenDaysAgo)
+          .map(entry => ({
+            date: new Date(entry.timestamp),
+            mood: entry.mood
+          }));
+        
+        return recentMoods;
+      },
     }),
     {
       name: 'user-storage',
