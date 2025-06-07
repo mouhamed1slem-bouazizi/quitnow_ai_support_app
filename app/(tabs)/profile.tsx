@@ -62,8 +62,7 @@ export default function ProfileScreen() {
   };
   
   const handleDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
-    // On Android, don't hide the picker immediately to allow the user to confirm
-    if (Platform.OS === 'android' && event.type === 'set') {
+    if (Platform.OS === 'android') {
       setShowDatePicker(false);
     }
     
@@ -74,14 +73,11 @@ export default function ProfileScreen() {
       newDate.setMonth(selectedDate.getMonth());
       newDate.setDate(selectedDate.getDate());
       setResetQuitDate(newDate);
-    } else if (event.type === 'dismissed' && Platform.OS === 'android') {
-      setShowDatePicker(false);
     }
   };
   
   const handleTimeChange = (event: DateTimePickerEvent, selectedTime?: Date) => {
-    // On Android, don't hide the picker immediately to allow the user to confirm
-    if (Platform.OS === 'android' && event.type === 'set') {
+    if (Platform.OS === 'android') {
       setShowTimePicker(false);
     }
     
@@ -91,8 +87,6 @@ export default function ProfileScreen() {
       newDate.setHours(selectedTime.getHours());
       newDate.setMinutes(selectedTime.getMinutes());
       setResetQuitDate(newDate);
-    } else if (event.type === 'dismissed' && Platform.OS === 'android') {
-      setShowTimePicker(false);
     }
   };
   
