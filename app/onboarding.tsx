@@ -336,8 +336,8 @@ export default function OnboardingScreen() {
                 mode="date"
                 display="spinner"
                 onChange={handleDateChange}
-                maximumDate={new Date()}
                 style={styles.iosPicker}
+                // Removed maximumDate to allow selecting any date in the past
               />
             </View>
           </View>
@@ -382,7 +382,7 @@ export default function OnboardingScreen() {
           is24Hour={true}
           display="default"
           onChange={handleDateChange}
-          maximumDate={new Date()}
+          // Removed maximumDate to allow selecting any date in the past
         />
       )}
       
