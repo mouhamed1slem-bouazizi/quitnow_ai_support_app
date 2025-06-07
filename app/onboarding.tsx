@@ -5,7 +5,7 @@ import { useUserStore } from '@/store/user-store';
 import { useThemeColors } from '@/constants/colors';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar, DollarSign, User, Cigarette, Clock } from 'lucide-react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 
 export default function OnboardingScreen() {
   const router = useRouter();
@@ -48,7 +48,7 @@ export default function OnboardingScreen() {
     setStep(step - 1);
   };
   
-  const handleDateChange = (event, selectedDate) => {
+  const handleDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
     const currentDate = selectedDate || quitDate;
     
     if (Platform.OS === 'android') {
@@ -65,7 +65,7 @@ export default function OnboardingScreen() {
     }
   };
   
-  const handleTimeChange = (event, selectedTime) => {
+  const handleTimeChange = (event: DateTimePickerEvent, selectedTime?: Date) => {
     const currentTime = selectedTime || quitDate;
     
     if (Platform.OS === 'android') {
@@ -81,7 +81,7 @@ export default function OnboardingScreen() {
     }
   };
   
-  const formatDate = (date) => {
+  const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -89,7 +89,7 @@ export default function OnboardingScreen() {
     });
   };
   
-  const formatTime = (date) => {
+  const formatTime = (date: Date) => {
     return date.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',

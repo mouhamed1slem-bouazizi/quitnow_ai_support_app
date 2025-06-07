@@ -4,7 +4,7 @@ import { Stack, useRouter } from 'expo-router';
 import { useUserStore } from '@/store/user-store';
 import { useThemeColors } from '@/constants/colors';
 import { User, Calendar, DollarSign, Cigarette, LogOut, Save, Clock, Moon, Sun, Smartphone } from 'lucide-react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -65,7 +65,7 @@ export default function ProfileScreen() {
     router.replace('/(tabs)');
   };
   
-  const handleDateChange = (event, selectedDate) => {
+  const handleDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
     const currentDate = selectedDate || resetQuitDate;
     
     if (Platform.OS === 'android') {
@@ -82,7 +82,7 @@ export default function ProfileScreen() {
     }
   };
   
-  const handleTimeChange = (event, selectedTime) => {
+  const handleTimeChange = (event: DateTimePickerEvent, selectedTime?: Date) => {
     const currentTime = selectedTime || resetQuitDate;
     
     if (Platform.OS === 'android') {
@@ -98,7 +98,7 @@ export default function ProfileScreen() {
     }
   };
   
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
@@ -107,7 +107,7 @@ export default function ProfileScreen() {
     });
   };
   
-  const formatTime = (date) => {
+  const formatTime = (date: Date) => {
     return date.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
@@ -181,7 +181,7 @@ export default function ProfileScreen() {
                 <TextInput
                   style={[styles.infoInput, { color: colors.text, borderBottomColor: colors.primary }]}
                   value={editedCigarettesPerDay}
-                  onChangeText={setCigarettesPerDay}
+                  onChangeText={setEditedCigarettesPerDay}
                   keyboardType="number-pad"
                   placeholder="20"
                   placeholderTextColor={colors.inactive}
