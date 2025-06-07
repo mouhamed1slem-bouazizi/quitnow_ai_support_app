@@ -1,4 +1,5 @@
 import { useColorScheme } from 'react-native';
+import { useUserStore } from '@/store/user-store';
 
 // Define the theme colors
 const lightColors = {
@@ -15,6 +16,7 @@ const lightColors = {
   success: '#4cc9f0',
   warning: '#ffaa00',
   error: '#ff4d6d',
+  danger: '#ff4d6d', // Added for consistency
   inactive: '#ced4da',
   progressBackground: '#e9ecef',
   progressFill: '#4361ee',
@@ -35,6 +37,7 @@ const darkColors = {
   success: '#4cc9f0',
   warning: '#ffaa00',
   error: '#ff4d6d',
+  danger: '#ff4d6d', // Added for consistency
   inactive: '#495057',
   progressBackground: '#2a2a2a',
   progressFill: '#4cc9f0',
@@ -42,8 +45,13 @@ const darkColors = {
 };
 
 export function useThemeColors() {
-  const colorScheme = useColorScheme();
-  return colorScheme === 'dark' ? darkColors : lightColors;
+  const systemColorScheme = useColorScheme();
+  const { theme } = useUserStore();
+  
+  // Determine which theme to use
+  const effectiveTheme = theme === 'system' ? systemColorScheme : theme;
+  
+  return effectiveTheme === 'dark' ? darkColors : lightColors;
 }
 
 // Export default colors object for backward compatibility
