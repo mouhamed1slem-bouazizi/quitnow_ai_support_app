@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Modal } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Modal, Pressable } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useUserStore } from '@/store/user-store';
-import colors from '@/constants/colors';
+import { useThemeColors } from '@/constants/colors';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar, DollarSign, User, Cigarette, Clock } from 'lucide-react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 
 export default function OnboardingScreen() {
   const router = useRouter();
+  const colors = useThemeColors();
   const { setProfile, setOnboarded } = useUserStore();
   
   const [name, setName] = useState('');
@@ -44,7 +45,8 @@ export default function OnboardingScreen() {
   };
   
   const handleDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
-    if (Platform.OS === 'android') {
+    // On Android, don't hide the picker immediately to allow the user to confirm
+    if (Platform.OS === 'android' && event.type === 'set') {
       setShowDatePicker(false);
     }
     
@@ -55,11 +57,14 @@ export default function OnboardingScreen() {
       newDate.setMonth(selectedDate.getMonth());
       newDate.setDate(selectedDate.getDate());
       setQuitDate(newDate);
+    } else if (event.type === 'dismissed' && Platform.OS === 'android') {
+      setShowDatePicker(false);
     }
   };
   
   const handleTimeChange = (event: DateTimePickerEvent, selectedTime?: Date) => {
-    if (Platform.OS === 'android') {
+    // On Android, don't hide the picker immediately to allow the user to confirm
+    if (Platform.OS === 'android' && event.type === 'set') {
       setShowTimePicker(false);
     }
     
@@ -69,6 +74,8 @@ export default function OnboardingScreen() {
       newDate.setHours(selectedTime.getHours());
       newDate.setMinutes(selectedTime.getMinutes());
       setQuitDate(newDate);
+    } else if (event.type === 'dismissed' && Platform.OS === 'android') {
+      setShowTimePicker(false);
     }
   };
   
@@ -89,10 +96,12 @@ export default function OnboardingScreen() {
   
   const openDatePicker = () => {
     setShowDatePicker(true);
+    setShowTimePicker(false);
   };
   
   const openTimePicker = () => {
     setShowTimePicker(true);
+    setShowDatePicker(false);
   };
   
   const closePicker = () => {
@@ -101,25 +110,25 @@ export default function OnboardingScreen() {
   };
   
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardAvoid}
       >
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <View style={styles.header}>
-            <Text style={styles.title}>Quit Smoking</Text>
-            <Text style={styles.subtitle}>Let's set up your profile to help you on your journey</Text>
+            <Text style={[styles.title, { color: colors.primary }]}>Quit Smoking</Text>
+            <Text style={[styles.subtitle, { color: colors.textSecondary }]}>Let's set up your profile to help you on your journey</Text>
           </View>
           
           {step === 1 && (
             <View style={styles.stepContainer}>
-              <View style={styles.iconContainer}>
+              <View style={[styles.iconContainer, { backgroundColor: `${colors.primary}20` }]}>
                 <User size={32} color={colors.primary} />
               </View>
-              <Text style={styles.stepTitle}>What's your name?</Text>
+              <Text style={[styles.stepTitle, { color: colors.text }]}>What's your name?</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: colors.background, borderColor: colors.inactive, color: colors.text }]}
                 value={name}
                 onChangeText={setName}
                 placeholder="Enter your name"
@@ -127,7 +136,11 @@ export default function OnboardingScreen() {
                 autoFocus
               />
               <TouchableOpacity
-                style={[styles.button, !name.trim() && styles.buttonDisabled]}
+                style={[
+                  styles.button, 
+                  { backgroundColor: colors.primary },
+                  !name.trim() && styles.buttonDisabled
+                ]}
                 onPress={nextStep}
                 disabled={!name.trim()}
               >
@@ -138,12 +151,12 @@ export default function OnboardingScreen() {
           
           {step === 2 && (
             <View style={styles.stepContainer}>
-              <View style={styles.iconContainer}>
+              <View style={[styles.iconContainer, { backgroundColor: `${colors.primary}20` }]}>
                 <Cigarette size={32} color={colors.primary} />
               </View>
-              <Text style={styles.stepTitle}>How many cigarettes do you smoke daily?</Text>
+              <Text style={[styles.stepTitle, { color: colors.text }]}>How many cigarettes do you smoke daily?</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, { backgroundColor: colors.background, borderColor: colors.inactive, color: colors.text }]}
                 value={cigarettesPerDay}
                 onChangeText={setCigarettesPerDay}
                 placeholder="20"
@@ -156,12 +169,13 @@ export default function OnboardingScreen() {
                   style={styles.backButton}
                   onPress={prevStep}
                 >
-                  <Text style={styles.backButtonText}>Back</Text>
+                  <Text style={[styles.backButtonText, { color: colors.primary }]}>Back</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[
                     styles.button, 
                     styles.buttonSmall,
+                    { backgroundColor: colors.primary },
                     !cigarettesPerDay.trim() && styles.buttonDisabled
                   ]}
                   onPress={nextStep}
@@ -175,13 +189,20 @@ export default function OnboardingScreen() {
           
           {step === 3 && (
             <View style={styles.stepContainer}>
-              <View style={styles.iconContainer}>
+              <View style={[styles.iconContainer, { backgroundColor: `${colors.primary}20` }]}>
                 <DollarSign size={32} color={colors.primary} />
               </View>
-              <Text style={styles.stepTitle}>How much does a pack of cigarettes cost?</Text>
+              <Text style={[styles.stepTitle, { color: colors.text }]}>How much does a pack of cigarettes cost?</Text>
               <View style={styles.priceInputContainer}>
                 <TextInput
-                  style={styles.priceInput}
+                  style={[
+                    styles.priceInput, 
+                    { 
+                      backgroundColor: colors.background, 
+                      borderColor: colors.inactive, 
+                      color: colors.text 
+                    }
+                  ]}
                   value={cigarettePrice}
                   onChangeText={setCigarettePrice}
                   placeholder="10.00"
@@ -189,8 +210,14 @@ export default function OnboardingScreen() {
                   keyboardType="decimal-pad"
                   autoFocus
                 />
-                <View style={styles.currencySelector}>
-                  <Text style={styles.currencyText}>{currency}</Text>
+                <View style={[
+                  styles.currencySelector, 
+                  { 
+                    backgroundColor: `${colors.primary}20`,
+                    borderColor: colors.inactive
+                  }
+                ]}>
+                  <Text style={[styles.currencyText, { color: colors.text }]}>{currency}</Text>
                 </View>
               </View>
               <View style={styles.currencyOptions}>
@@ -199,13 +226,15 @@ export default function OnboardingScreen() {
                     key={curr}
                     style={[
                       styles.currencyOption,
-                      currency === curr && styles.currencyOptionSelected,
+                      { backgroundColor: colors.background, borderColor: colors.inactive },
+                      currency === curr && [styles.currencyOptionSelected, { backgroundColor: colors.primary, borderColor: colors.primary }],
                     ]}
                     onPress={() => setCurrency(curr)}
                   >
                     <Text
                       style={[
                         styles.currencyOptionText,
+                        { color: colors.text },
                         currency === curr && styles.currencyOptionTextSelected,
                       ]}
                     >
@@ -219,12 +248,13 @@ export default function OnboardingScreen() {
                   style={styles.backButton}
                   onPress={prevStep}
                 >
-                  <Text style={styles.backButtonText}>Back</Text>
+                  <Text style={[styles.backButtonText, { color: colors.primary }]}>Back</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[
                     styles.button, 
                     styles.buttonSmall,
+                    { backgroundColor: colors.primary },
                     !cigarettePrice.trim() && styles.buttonDisabled
                   ]}
                   onPress={nextStep}
@@ -238,30 +268,36 @@ export default function OnboardingScreen() {
           
           {step === 4 && (
             <View style={styles.stepContainer}>
-              <View style={styles.iconContainer}>
+              <View style={[styles.iconContainer, { backgroundColor: `${colors.primary}20` }]}>
                 <Calendar size={32} color={colors.primary} />
               </View>
-              <Text style={styles.stepTitle}>When did you quit smoking?</Text>
+              <Text style={[styles.stepTitle, { color: colors.text }]}>When did you quit smoking?</Text>
               
               <View style={styles.dateTimeContainer}>
-                <TouchableOpacity 
-                  style={styles.dateTimeButton}
+                <Pressable 
+                  style={[
+                    styles.dateTimeButton, 
+                    { backgroundColor: colors.background, borderColor: colors.inactive }
+                  ]}
                   onPress={openDatePicker}
                 >
                   <Calendar size={20} color={colors.primary} style={styles.dateTimeIcon} />
-                  <Text style={styles.dateTimeText}>{formatDate(quitDate)}</Text>
-                </TouchableOpacity>
+                  <Text style={[styles.dateTimeText, { color: colors.text }]}>{formatDate(quitDate)}</Text>
+                </Pressable>
                 
-                <TouchableOpacity 
-                  style={styles.dateTimeButton}
+                <Pressable 
+                  style={[
+                    styles.dateTimeButton, 
+                    { backgroundColor: colors.background, borderColor: colors.inactive }
+                  ]}
                   onPress={openTimePicker}
                 >
                   <Clock size={20} color={colors.primary} style={styles.dateTimeIcon} />
-                  <Text style={styles.dateTimeText}>{formatTime(quitDate)}</Text>
-                </TouchableOpacity>
+                  <Text style={[styles.dateTimeText, { color: colors.text }]}>{formatTime(quitDate)}</Text>
+                </Pressable>
               </View>
               
-              <Text style={styles.dateTimeHint}>
+              <Text style={[styles.dateTimeHint, { color: colors.textSecondary }]}>
                 Set the exact date and time you quit smoking for accurate tracking
               </Text>
               
@@ -270,10 +306,10 @@ export default function OnboardingScreen() {
                   style={styles.backButton}
                   onPress={prevStep}
                 >
-                  <Text style={styles.backButtonText}>Back</Text>
+                  <Text style={[styles.backButtonText, { color: colors.primary }]}>Back</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.button, styles.buttonSmall]}
+                  style={[styles.button, styles.buttonSmall, { backgroundColor: colors.primary }]}
                   onPress={handleComplete}
                 >
                   <Text style={styles.buttonText}>Let's Begin</Text>
@@ -293,11 +329,11 @@ export default function OnboardingScreen() {
           onRequestClose={closePicker}
         >
           <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <View style={styles.pickerHeader}>
-                <Text style={styles.pickerTitle}>Select Date</Text>
+            <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
+              <View style={[styles.pickerHeader, { borderBottomColor: colors.inactive }]}>
+                <Text style={[styles.pickerTitle, { color: colors.text }]}>Select Date</Text>
                 <TouchableOpacity onPress={closePicker}>
-                  <Text style={styles.pickerDone}>Done</Text>
+                  <Text style={[styles.pickerDone, { color: colors.primary }]}>Done</Text>
                 </TouchableOpacity>
               </View>
               <DateTimePicker
@@ -323,11 +359,11 @@ export default function OnboardingScreen() {
           onRequestClose={closePicker}
         >
           <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <View style={styles.pickerHeader}>
-                <Text style={styles.pickerTitle}>Select Time</Text>
+            <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
+              <View style={[styles.pickerHeader, { borderBottomColor: colors.inactive }]}>
+                <Text style={[styles.pickerTitle, { color: colors.text }]}>Select Time</Text>
                 <TouchableOpacity onPress={closePicker}>
-                  <Text style={styles.pickerDone}>Done</Text>
+                  <Text style={[styles.pickerDone, { color: colors.primary }]}>Done</Text>
                 </TouchableOpacity>
               </View>
               <DateTimePicker
@@ -374,7 +410,6 @@ export default function OnboardingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
   },
   keyboardAvoid: {
     flex: 1,
@@ -391,12 +426,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: 'bold',
-    color: colors.primary,
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 16,
-    color: colors.textSecondary,
     textAlign: 'center',
   },
   stepContainer: {
@@ -406,7 +439,6 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: `${colors.primary}20`,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
@@ -414,20 +446,16 @@ const styles = StyleSheet.create({
   stepTitle: {
     fontSize: 20,
     fontWeight: '600',
-    color: colors.text,
     marginBottom: 24,
     textAlign: 'center',
   },
   input: {
     width: '100%',
-    backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor: colors.inactive,
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    color: colors.text,
     marginBottom: 24,
   },
   priceInputContainer: {
@@ -437,30 +465,24 @@ const styles = StyleSheet.create({
   },
   priceInput: {
     flex: 1,
-    backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor: colors.inactive,
     borderTopLeftRadius: 8,
     borderBottomLeftRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
-    color: colors.text,
   },
   currencySelector: {
-    backgroundColor: `${colors.primary}20`,
     paddingHorizontal: 16,
     justifyContent: 'center',
     borderTopRightRadius: 8,
     borderBottomRightRadius: 8,
     borderWidth: 1,
     borderLeftWidth: 0,
-    borderColor: colors.inactive,
   },
   currencyText: {
     fontSize: 16,
     fontWeight: '500',
-    color: colors.text,
   },
   currencyOptions: {
     flexDirection: 'row',
@@ -472,24 +494,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
-    backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor: colors.inactive,
     margin: 4,
   },
   currencyOptionSelected: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
   },
   currencyOptionText: {
     fontSize: 14,
-    color: colors.text,
   },
   currencyOptionTextSelected: {
     color: 'white',
   },
   button: {
-    backgroundColor: colors.primary,
     paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 8,
@@ -519,7 +535,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   backButtonText: {
-    color: colors.primary,
     fontSize: 16,
     fontWeight: '500',
   },
@@ -530,9 +545,7 @@ const styles = StyleSheet.create({
   dateTimeButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.background,
     borderWidth: 1,
-    borderColor: colors.inactive,
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
@@ -543,11 +556,9 @@ const styles = StyleSheet.create({
   },
   dateTimeText: {
     fontSize: 16,
-    color: colors.text,
   },
   dateTimeHint: {
     fontSize: 14,
-    color: colors.textSecondary,
     textAlign: 'center',
     marginBottom: 24,
   },
@@ -557,7 +568,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
   modalContent: {
-    backgroundColor: 'white',
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
     paddingBottom: 20,
@@ -569,15 +579,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: colors.inactive,
   },
   pickerTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: colors.text,
   },
   pickerDone: {
-    color: colors.primary,
     fontSize: 16,
     fontWeight: '500',
   },

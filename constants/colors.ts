@@ -1,47 +1,58 @@
 import { useColorScheme } from 'react-native';
 import { useUserStore } from '@/store/user-store';
 
-// Define color palettes
-export const lightColors = {
-  primary: "#4A90E2", // Calming blue
-  secondary: "#F5A623", // Warm orange for achievements
-  background: "#FFFFFF",
-  card: "#F8F9FA",
-  text: "#333333",
-  textSecondary: "#6B7280",
-  success: "#34C759",
-  danger: "#FF3B30",
-  warning: "#FFCC00",
-  inactive: "#C7C7CC",
-  progressBar: "#4A90E2",
-  progressBackground: "#E5E5EA",
+// Light theme colors
+const lightColors = {
+  primary: '#5271FF',
+  secondary: '#FF7D54',
+  background: '#FFFFFF',
+  card: '#F8F9FA',
+  text: '#1A1A1A',
+  textSecondary: '#6C757D',
+  inactive: '#ADB5BD',
+  success: '#28A745',
+  danger: '#DC3545',
+  warning: '#FFC107',
+  info: '#17A2B8',
+  progressBackground: '#E9ECEF',
+  progressFill: '#5271FF',
+  shadow: 'rgba(0, 0, 0, 0.1)',
 };
 
-export const darkColors = {
-  primary: "#5E9CEA", // Slightly lighter blue for dark mode
-  secondary: "#F7B955", // Slightly lighter orange for dark mode
-  background: "#121212",
-  card: "#1E1E1E",
-  text: "#F2F2F7",
-  textSecondary: "#AEAEB2",
-  success: "#30D158",
-  danger: "#FF453A",
-  warning: "#FFD60A",
-  inactive: "#48484A",
-  progressBar: "#5E9CEA",
-  progressBackground: "#2C2C2E",
+// Dark theme colors
+const darkColors = {
+  primary: '#6C8AFF',
+  secondary: '#FF8F6B',
+  background: '#121212',
+  card: '#1E1E1E',
+  text: '#F8F9FA',
+  textSecondary: '#ADB5BD',
+  inactive: '#6C757D',
+  success: '#28A745',
+  danger: '#DC3545',
+  warning: '#FFC107',
+  info: '#17A2B8',
+  progressBackground: '#2A2A2A',
+  progressFill: '#6C8AFF',
+  shadow: 'rgba(0, 0, 0, 0.3)',
 };
 
-// Export a function to get colors based on theme
-export const useThemeColors = () => {
+// Default export for backward compatibility
+export default lightColors;
+
+// Hook to get the current theme colors
+export function useThemeColors() {
   const systemColorScheme = useColorScheme();
   const { theme } = useUserStore();
   
   // Determine which theme to use based on user preference
-  const effectiveTheme = theme === 'system' ? systemColorScheme : theme;
+  let activeTheme: 'light' | 'dark';
   
-  return effectiveTheme === 'dark' ? darkColors : lightColors;
-};
-
-// Default to light colors for direct imports
-export default lightColors;
+  if (theme === 'system') {
+    activeTheme = systemColorScheme === 'dark' ? 'dark' : 'light';
+  } else {
+    activeTheme = theme as 'light' | 'dark';
+  }
+  
+  return activeTheme === 'dark' ? darkColors : lightColors;
+}

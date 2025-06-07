@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Modal, Platform, Switch, useColorScheme } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Modal, Platform, Switch, useColorScheme, Pressable } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useUserStore } from '@/store/user-store';
 import { useThemeColors } from '@/constants/colors';
@@ -62,7 +62,8 @@ export default function ProfileScreen() {
   };
   
   const handleDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
-    if (Platform.OS === 'android') {
+    // On Android, don't hide the picker immediately to allow the user to confirm
+    if (Platform.OS === 'android' && event.type === 'set') {
       setShowDatePicker(false);
     }
     
@@ -73,11 +74,14 @@ export default function ProfileScreen() {
       newDate.setMonth(selectedDate.getMonth());
       newDate.setDate(selectedDate.getDate());
       setResetQuitDate(newDate);
+    } else if (event.type === 'dismissed' && Platform.OS === 'android') {
+      setShowDatePicker(false);
     }
   };
   
   const handleTimeChange = (event: DateTimePickerEvent, selectedTime?: Date) => {
-    if (Platform.OS === 'android') {
+    // On Android, don't hide the picker immediately to allow the user to confirm
+    if (Platform.OS === 'android' && event.type === 'set') {
       setShowTimePicker(false);
     }
     
@@ -87,6 +91,8 @@ export default function ProfileScreen() {
       newDate.setHours(selectedTime.getHours());
       newDate.setMinutes(selectedTime.getMinutes());
       setResetQuitDate(newDate);
+    } else if (event.type === 'dismissed' && Platform.OS === 'android') {
+      setShowTimePicker(false);
     }
   };
   
@@ -326,21 +332,21 @@ export default function ProfileScreen() {
               </Text>
               
               <View style={styles.dateTimeContainer}>
-                <TouchableOpacity 
+                <Pressable 
                   style={[styles.dateTimeButton, { backgroundColor: colors.background, borderColor: colors.inactive }]}
                   onPress={openDatePicker}
                 >
                   <Calendar size={20} color={colors.primary} style={styles.dateTimeIcon} />
                   <Text style={[styles.dateTimeText, { color: colors.text }]}>{formatDate(resetQuitDate.toISOString())}</Text>
-                </TouchableOpacity>
+                </Pressable>
                 
-                <TouchableOpacity 
+                <Pressable 
                   style={[styles.dateTimeButton, { backgroundColor: colors.background, borderColor: colors.inactive }]}
                   onPress={openTimePicker}
                 >
                   <Clock size={20} color={colors.primary} style={styles.dateTimeIcon} />
                   <Text style={[styles.dateTimeText, { color: colors.text }]}>{formatTime(resetQuitDate)}</Text>
-                </TouchableOpacity>
+                </Pressable>
               </View>
               
               <View style={styles.modalButtons}>
@@ -371,7 +377,7 @@ export default function ProfileScreen() {
           <Modal
             transparent={true}
             animationType="slide"
-            visible={showDatePicker}
+            visible={showDatePicker && showResetModal}
             onRequestClose={closePicker}
           >
             <View style={styles.pickerModalOverlay}>
@@ -401,7 +407,7 @@ export default function ProfileScreen() {
           <Modal
             transparent={true}
             animationType="slide"
-            visible={showTimePicker}
+            visible={showTimePicker && showResetModal}
             onRequestClose={closePicker}
           >
             <View style={styles.pickerModalOverlay}>
@@ -426,7 +432,7 @@ export default function ProfileScreen() {
         )}
         
         {/* Date Picker for Android */}
-        {Platform.OS === 'android' && showDatePicker && (
+        {Platform.OS === 'android' && showDatePicker && showResetModal && (
           <DateTimePicker
             testID="dateTimePicker"
             value={resetQuitDate}
@@ -439,7 +445,7 @@ export default function ProfileScreen() {
         )}
         
         {/* Time Picker for Android */}
-        {Platform.OS === 'android' && showTimePicker && (
+        {Platform.OS === 'android' && showTimePicker && showResetModal && (
           <DateTimePicker
             testID="timeTimePicker"
             value={resetQuitDate}
