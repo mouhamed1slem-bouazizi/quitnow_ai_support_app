@@ -24,6 +24,7 @@ interface UserState {
   resetProgress: () => void;
   setTheme: (theme: ThemeType) => void;
   calculateProgress: () => ProgressMetrics;
+  addAchievement: (achievementId: string) => void;
 }
 
 export const useUserStore = create<UserState>()(
@@ -50,6 +51,23 @@ export const useUserStore = create<UserState>()(
       })),
       
       setTheme: (theme) => set({ theme }),
+      
+      addAchievement: (achievementId) => set((state) => {
+        if (!state.profile) return state;
+        
+        // Check if achievement already exists
+        if (state.profile.achievements.includes(achievementId)) {
+          return state;
+        }
+        
+        // Add the achievement
+        return {
+          profile: {
+            ...state.profile,
+            achievements: [...state.profile.achievements, achievementId]
+          }
+        };
+      }),
       
       calculateProgress: () => {
         const { profile } = get();

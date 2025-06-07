@@ -41,7 +41,7 @@ export default function AchievementChecker() {
     return () => {
       clearInterval(intervalId);
     };
-  }, [profile]);
+  }, [profile, calculateProgress, addAchievement]);
   
   return null;
 }
