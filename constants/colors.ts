@@ -44,9 +44,15 @@ const darkColors = {
   shadow: '#000000',
 };
 
+// Define the type for the colors object
+export type ColorType = typeof lightColors;
+
+// Define the type for the theme
+export type ThemeType = 'light' | 'dark' | 'system';
+
 // Define the type for the colors object including the theme property
-export type ThemeColors = typeof lightColors & {
-  theme: 'light' | 'dark' | 'system';
+export type ThemeColors = ColorType & {
+  theme: ThemeType;
 };
 
 export function useThemeColors(): ThemeColors {
@@ -54,7 +60,7 @@ export function useThemeColors(): ThemeColors {
   const { theme } = useUserStore();
   
   // Determine which theme to use
-  const effectiveTheme = theme === 'system' ? systemColorScheme : theme;
+  const effectiveTheme = theme === 'system' ? systemColorScheme || 'light' : theme || 'light';
   const colors = effectiveTheme === 'dark' ? darkColors : lightColors;
   
   // Add theme property to the returned colors object

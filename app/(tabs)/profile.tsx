@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Modal, Platform, Switch, useColorScheme, Pressable, Alert } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useUserStore } from '@/store/user-store';
-import { useThemeColors } from '@/constants/colors';
+import { useThemeColors, ThemeType } from '@/constants/colors';
 import { User, Calendar, DollarSign, Cigarette, LogOut, Save, Clock, Moon, Sun, Smartphone } from 'lucide-react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 
@@ -12,7 +12,7 @@ export default function ProfileScreen() {
   const { profile, updateProfile, resetProgress, theme, setTheme } = useUserStore();
   
   const [isEditing, setIsEditing] = useState(false);
-  const [editedName, setEditedName] = useState(profile?.name || '");
+  const [editedName, setEditedName] = useState(profile?.name || '');
   const [editedCigarettesPerDay, setEditedCigarettesPerDay] = useState(
     profile?.cigarettesPerDay?.toString() || '20'
   );
@@ -374,77 +374,27 @@ export default function ProfileScreen() {
           </View>
         </Modal>
         
-        {/* Date Picker - Platform specific rendering */}
-        {(Platform.OS === 'ios' || showDatePicker) && (
-          <Modal
-            visible={showDatePicker}
-            transparent={true}
-            animationType="slide"
-            onRequestClose={() => setShowDatePicker(false)}
-          >
-            <View style={styles.pickerModalOverlay}>
-              <View style={[styles.pickerModalContent, { backgroundColor: colors.card }]}>
-                <View style={styles.pickerHeader}>
-                  <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                    <Text style={[styles.pickerCancel, { color: colors.textSecondary }]}>Cancel</Text>
-                  </TouchableOpacity>
-                  <Text style={[styles.pickerTitle, { color: colors.text }]}>Select Date</Text>
-                  <TouchableOpacity 
-                    onPress={() => {
-                      setShowDatePicker(false);
-                    }}
-                  >
-                    <Text style={[styles.pickerDone, { color: colors.primary }]}>Done</Text>
-                  </TouchableOpacity>
-                </View>
-                <DateTimePicker
-                  testID="dateTimePicker"
-                  value={resetQuitDate}
-                  mode="date"
-                  display="spinner"
-                  onChange={handleDateChange}
-                  maximumDate={new Date()}
-                  style={styles.picker}
-                />
-              </View>
-            </View>
-          </Modal>
+        {/* Date Picker */}
+        {showDatePicker && (
+          <DateTimePicker
+            testID="dateTimePicker"
+            value={resetQuitDate}
+            mode="date"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={handleDateChange}
+            maximumDate={new Date()}
+          />
         )}
         
-        {/* Time Picker - Platform specific rendering */}
-        {(Platform.OS === 'ios' || showTimePicker) && (
-          <Modal
-            visible={showTimePicker}
-            transparent={true}
-            animationType="slide"
-            onRequestClose={() => setShowTimePicker(false)}
-          >
-            <View style={styles.pickerModalOverlay}>
-              <View style={[styles.pickerModalContent, { backgroundColor: colors.card }]}>
-                <View style={styles.pickerHeader}>
-                  <TouchableOpacity onPress={() => setShowTimePicker(false)}>
-                    <Text style={[styles.pickerCancel, { color: colors.textSecondary }]}>Cancel</Text>
-                  </TouchableOpacity>
-                  <Text style={[styles.pickerTitle, { color: colors.text }]}>Select Time</Text>
-                  <TouchableOpacity 
-                    onPress={() => {
-                      setShowTimePicker(false);
-                    }}
-                  >
-                    <Text style={[styles.pickerDone, { color: colors.primary }]}>Done</Text>
-                  </TouchableOpacity>
-                </View>
-                <DateTimePicker
-                  testID="timeTimePicker"
-                  value={resetQuitDate}
-                  mode="time"
-                  display="spinner"
-                  onChange={handleTimeChange}
-                  style={styles.picker}
-                />
-              </View>
-            </View>
-          </Modal>
+        {/* Time Picker */}
+        {showTimePicker && (
+          <DateTimePicker
+            testID="timeTimePicker"
+            value={resetQuitDate}
+            mode="time"
+            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+            onChange={handleTimeChange}
+          />
         )}
       </ScrollView>
     </>

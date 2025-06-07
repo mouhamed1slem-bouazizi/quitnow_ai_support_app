@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Modal, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useUserStore } from '@/store/user-store';
-import { useThemeColors } from '@/constants/colors';
+import { useThemeColors, ThemeType } from '@/constants/colors';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar, DollarSign, User, Cigarette, Clock } from 'lucide-react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
@@ -311,77 +311,27 @@ export default function OnboardingScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
       
-      {/* Date Picker - Platform specific rendering */}
+      {/* Date Picker */}
       {showDatePicker && (
-        <Modal
-          visible={showDatePicker}
-          transparent={true}
-          animationType="slide"
-          onRequestClose={() => setShowDatePicker(false)}
-        >
-          <View style={styles.pickerModalOverlay}>
-            <View style={[styles.pickerModalContent, { backgroundColor: colors.card }]}>
-              <View style={styles.pickerHeader}>
-                <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                  <Text style={[styles.pickerCancel, { color: colors.textSecondary }]}>Cancel</Text>
-                </TouchableOpacity>
-                <Text style={[styles.pickerTitle, { color: colors.text }]}>Select Date</Text>
-                <TouchableOpacity 
-                  onPress={() => {
-                    setShowDatePicker(false);
-                  }}
-                >
-                  <Text style={[styles.pickerDone, { color: colors.primary }]}>Done</Text>
-                </TouchableOpacity>
-              </View>
-              <DateTimePicker
-                testID="dateTimePicker"
-                value={quitDate}
-                mode="date"
-                display="spinner"
-                onChange={handleDateChange}
-                maximumDate={new Date()}
-                style={styles.picker}
-              />
-            </View>
-          </View>
-        </Modal>
+        <DateTimePicker
+          testID="dateTimePicker"
+          value={quitDate}
+          mode="date"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={handleDateChange}
+          maximumDate={new Date()}
+        />
       )}
       
-      {/* Time Picker - Platform specific rendering */}
+      {/* Time Picker */}
       {showTimePicker && (
-        <Modal
-          visible={showTimePicker}
-          transparent={true}
-          animationType="slide"
-          onRequestClose={() => setShowTimePicker(false)}
-        >
-          <View style={styles.pickerModalOverlay}>
-            <View style={[styles.pickerModalContent, { backgroundColor: colors.card }]}>
-              <View style={styles.pickerHeader}>
-                <TouchableOpacity onPress={() => setShowTimePicker(false)}>
-                  <Text style={[styles.pickerCancel, { color: colors.textSecondary }]}>Cancel</Text>
-                </TouchableOpacity>
-                <Text style={[styles.pickerTitle, { color: colors.text }]}>Select Time</Text>
-                <TouchableOpacity 
-                  onPress={() => {
-                    setShowTimePicker(false);
-                  }}
-                >
-                  <Text style={[styles.pickerDone, { color: colors.primary }]}>Done</Text>
-                </TouchableOpacity>
-              </View>
-              <DateTimePicker
-                testID="timeTimePicker"
-                value={quitDate}
-                mode="time"
-                display="spinner"
-                onChange={handleTimeChange}
-                style={styles.picker}
-              />
-            </View>
-          </View>
-        </Modal>
+        <DateTimePicker
+          testID="timeTimePicker"
+          value={quitDate}
+          mode="time"
+          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+          onChange={handleTimeChange}
+        />
       )}
     </SafeAreaView>
   );
