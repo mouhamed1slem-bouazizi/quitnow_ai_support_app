@@ -1,62 +1,52 @@
 import { useColorScheme } from 'react-native';
-import { useUserStore } from '@/store/user-store';
 
-// Light theme colors
+// Define the theme colors
 const lightColors = {
-  primary: '#5271FF',
-  secondary: '#FF7D54',
-  background: '#FFFFFF',
-  card: '#F8F9FA',
-  text: '#1A1A1A',
-  textSecondary: '#6C757D',
-  textTertiary: '#8F959E',
-  inactive: '#ADB5BD',
-  success: '#28A745',
-  danger: '#DC3545',
-  warning: '#FFC107',
-  info: '#17A2B8',
-  progressBackground: '#E9ECEF',
-  progressFill: '#5271FF',
-  shadow: 'rgba(0, 0, 0, 0.1)',
-  psychological: '#9C6ADE', // Color for psychological effects
+  primary: '#4361ee',
+  secondary: '#3f37c9',
+  psychological: '#9c5cff', // Purple color for psychological category
+  background: '#f8f9fa',
+  card: '#ffffff',
+  text: '#212529',
+  textSecondary: '#6c757d',
+  textTertiary: '#adb5bd',
+  border: '#e9ecef',
+  notification: '#ff4d6d',
+  success: '#4cc9f0',
+  warning: '#ffaa00',
+  error: '#ff4d6d',
+  inactive: '#ced4da',
+  progressBackground: '#e9ecef',
+  progressFill: '#4361ee',
+  shadow: '#000000',
 };
 
-// Dark theme colors
 const darkColors = {
-  primary: '#6C8AFF',
-  secondary: '#FF8F6B',
+  primary: '#4cc9f0',
+  secondary: '#4895ef',
+  psychological: '#b77cff', // Lighter purple for dark mode
   background: '#121212',
-  card: '#1E1E1E',
-  text: '#F8F9FA',
-  textSecondary: '#ADB5BD',
-  textTertiary: '#6C757D',
-  inactive: '#6C757D',
-  success: '#28A745',
-  danger: '#DC3545',
-  warning: '#FFC107',
-  info: '#17A2B8',
-  progressBackground: '#2A2A2A',
-  progressFill: '#6C8AFF',
-  shadow: 'rgba(0, 0, 0, 0.3)',
-  psychological: '#B388FF', // Color for psychological effects
+  card: '#1e1e1e',
+  text: '#f8f9fa',
+  textSecondary: '#adb5bd',
+  textTertiary: '#6c757d',
+  border: '#2a2a2a',
+  notification: '#ff4d6d',
+  success: '#4cc9f0',
+  warning: '#ffaa00',
+  error: '#ff4d6d',
+  inactive: '#495057',
+  progressBackground: '#2a2a2a',
+  progressFill: '#4cc9f0',
+  shadow: '#000000',
 };
 
-// Default export for backward compatibility
-export default lightColors;
-
-// Hook to get the current theme colors
 export function useThemeColors() {
-  const systemColorScheme = useColorScheme();
-  const { theme } = useUserStore();
-  
-  // Determine which theme to use based on user preference
-  let activeTheme: 'light' | 'dark';
-  
-  if (theme === 'system') {
-    activeTheme = systemColorScheme === 'dark' ? 'dark' : 'light';
-  } else {
-    activeTheme = theme as 'light' | 'dark';
-  }
-  
-  return activeTheme === 'dark' ? darkColors : lightColors;
+  const colorScheme = useColorScheme();
+  return colorScheme === 'dark' ? darkColors : lightColors;
 }
+
+export const colors = {
+  light: lightColors,
+  dark: darkColors,
+};

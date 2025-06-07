@@ -8,13 +8,16 @@ import { Heart, Wind, Brain, Activity, ArrowRight, Info, Clock, Droplet, Shield,
 
 const { width } = Dimensions.get('window');
 
+// Define the type for system keys to avoid TypeScript errors
+type SystemKey = 'respiratory' | 'cardiovascular' | 'psychological' | 'nervous' | 'general' | 'immune' | 'digestive' | 'endocrine';
+
 export default function HealthProgressScreen() {
   const colors = useThemeColors();
   const { calculateProgress } = useUserStore();
   const { smokeFreeTime } = calculateProgress();
   const totalDays = smokeFreeTime.days;
   
-  const [selectedSystem, setSelectedSystem] = useState<string>('respiratory');
+  const [selectedSystem, setSelectedSystem] = useState<SystemKey>('respiratory');
   const scrollViewRef = useRef<ScrollView>(null);
   const [showScrollIndicator, setShowScrollIndicator] = useState(true);
   
@@ -184,7 +187,7 @@ export default function HealthProgressScreen() {
     },
     psychological: {
       title: "Psychological Effects",
-      icon: <Zap size={24} color={colors.psychological} />,
+      icon: <Zap size={24} color={colors.psychological || '#9c5cff'} />,
       improvements: [
         { 
           day: 0.04, // 1 hour
@@ -573,13 +576,13 @@ export default function HealthProgressScreen() {
   
   // Get relevant improvements for the selected system
   const getRelevantImprovements = () => {
-    const system = healthSystems[selectedSystem as keyof typeof healthSystems];
+    const system = healthSystems[selectedSystem];
     return system.improvements.sort((a, b) => a.day - b.day);
   };
   
   // Get current improvement based on days
   const getCurrentImprovement = () => {
-    const system = healthSystems[selectedSystem as keyof typeof healthSystems];
+    const system = healthSystems[selectedSystem];
     const improvements = system.improvements;
     
     // Find the most recent improvement that has been achieved
@@ -593,7 +596,7 @@ export default function HealthProgressScreen() {
   
   // Get healing percentage for the selected system
   const getHealingPercentage = () => {
-    const system = healthSystems[selectedSystem as keyof typeof healthSystems];
+    const system = healthSystems[selectedSystem];
     const maxDay = system.improvements[system.improvements.length - 1].day;
     
     return Math.min(100, Math.max(0, (totalDays / maxDay) * 100));
@@ -625,9 +628,9 @@ export default function HealthProgressScreen() {
   }, [selectedSystem]);
 
   // Systems to display in the first row (most important)
-  const primarySystems = ['respiratory', 'cardiovascular', 'psychological', 'nervous'];
+  const primarySystems: SystemKey[] = ['respiratory', 'cardiovascular', 'psychological', 'nervous'];
   // Systems to display in the second row
-  const secondarySystems = ['immune', 'digestive', 'endocrine', 'general'];
+  const secondarySystems: SystemKey[] = ['immune', 'digestive', 'endocrine', 'general'];
   
   return (
     <ScrollView 
@@ -687,10 +690,10 @@ export default function HealthProgressScreen() {
                 styles.systemButton, 
                 { 
                   backgroundColor: selectedSystem === system 
-                    ? (system === 'psychological' ? colors.psychological : colors.primary) 
+                    ? (system === 'psychological' ? colors.psychological || '#9c5cff' : colors.primary) 
                     : colors.background, 
                   borderColor: selectedSystem === system 
-                    ? (system === 'psychological' ? colors.psychological : colors.primary) 
+                    ? (system === 'psychological' ? colors.psychological || '#9c5cff' : colors.primary) 
                     : colors.progressBackground 
                 }
               ]}
@@ -699,19 +702,19 @@ export default function HealthProgressScreen() {
               {system === 'respiratory' && (
                 <Wind 
                   size={20} 
-                  color={selectedSystem === system ? colors.background : (system === 'psychological' ? colors.psychological : colors.primary)} 
+                  color={selectedSystem === system ? colors.background : colors.primary} 
                 />
               )}
               {system === 'cardiovascular' && (
                 <Heart 
                   size={20} 
-                  color={selectedSystem === system ? colors.background : (system === 'psychological' ? colors.psychological : colors.primary)} 
+                  color={selectedSystem === system ? colors.background : colors.primary} 
                 />
               )}
               {system === 'psychological' && (
                 <Zap 
                   size={20} 
-                  color={selectedSystem === system ? colors.background : colors.psychological} 
+                  color={selectedSystem === system ? colors.background : colors.psychological || '#9c5cff'} 
                 />
               )}
               {system === 'nervous' && (
@@ -726,12 +729,12 @@ export default function HealthProgressScreen() {
                   { 
                     color: selectedSystem === system 
                       ? colors.background 
-                      : (system === 'psychological' ? colors.psychological : colors.text) 
+                      : (system === 'psychological' ? colors.psychological || '#9c5cff' : colors.text) 
                   }
                 ]}
                 numberOfLines={1}
               >
-                {healthSystems[system as keyof typeof healthSystems].title.split(' ')[0]}
+                {healthSystems[system].title.split(' ')[0]}
               </Text>
             </TouchableOpacity>
           ))}
@@ -779,7 +782,7 @@ export default function HealthProgressScreen() {
                 ]}
                 numberOfLines={1}
               >
-                {healthSystems[system as keyof typeof healthSystems].title.split(' ')[0]}
+                {healthSystems[system].title.split(' ')[0]}
               </Text>
             </TouchableOpacity>
           ))}
@@ -789,9 +792,9 @@ export default function HealthProgressScreen() {
       {/* Selected system details */}
       <View style={[styles.systemDetailsCard, { backgroundColor: colors.card }]}>
         <View style={styles.systemHeader}>
-          {healthSystems[selectedSystem as keyof typeof healthSystems].icon}
+          {healthSystems[selectedSystem].icon}
           <Text style={[styles.systemTitle, { color: colors.text }]}>
-            {healthSystems[selectedSystem as keyof typeof healthSystems].title}
+            {healthSystems[selectedSystem].title}
           </Text>
         </View>
         
@@ -803,7 +806,7 @@ export default function HealthProgressScreen() {
                 styles.progressBar, 
                 { 
                   width: `${getHealingPercentage()}%`, 
-                  backgroundColor: selectedSystem === 'psychological' ? colors.psychological : colors.progressFill 
+                  backgroundColor: selectedSystem === 'psychological' ? colors.psychological || '#9c5cff' : colors.progressFill 
                 }
               ]} 
             />
@@ -811,7 +814,7 @@ export default function HealthProgressScreen() {
           <Text 
             style={[
               styles.percentageText, 
-              { color: selectedSystem === 'psychological' ? colors.psychological : colors.primary }
+              { color: selectedSystem === 'psychological' ? colors.psychological || '#9c5cff' : colors.primary }
             ]}
           >
             {Math.round(getHealingPercentage())}%
@@ -823,14 +826,14 @@ export default function HealthProgressScreen() {
             styles.currentImprovementContainer, 
             { 
               backgroundColor: colors.background, 
-              borderColor: selectedSystem === 'psychological' ? colors.psychological : colors.progressBackground,
+              borderColor: selectedSystem === 'psychological' ? colors.psychological || '#9c5cff' : colors.progressBackground,
               borderLeftWidth: 4
             }
           ]}
         >
           <Info 
             size={18} 
-            color={selectedSystem === 'psychological' ? colors.psychological : colors.primary} 
+            color={selectedSystem === 'psychological' ? colors.psychological || '#9c5cff' : colors.primary} 
           />
           <Text style={[styles.currentImprovementText, { color: colors.text }]}>
             {getCurrentImprovement()}
@@ -851,7 +854,7 @@ export default function HealthProgressScreen() {
                           styles.achievedDot, 
                           { 
                             backgroundColor: selectedSystem === 'psychological' 
-                              ? colors.psychological 
+                              ? colors.psychological || '#9c5cff' 
                               : colors.primary 
                           }
                         ] 
@@ -860,7 +863,7 @@ export default function HealthProgressScreen() {
                           { 
                             backgroundColor: colors.progressBackground, 
                             borderColor: selectedSystem === 'psychological' 
-                              ? `${colors.psychological}50` 
+                              ? (colors.psychological || '#9c5cff') + '50' 
                               : colors.inactive 
                           }
                         ]
@@ -875,7 +878,7 @@ export default function HealthProgressScreen() {
                             styles.achievedLine, 
                             { 
                               backgroundColor: selectedSystem === 'psychological' 
-                                ? colors.psychological 
+                                ? colors.psychological || '#9c5cff' 
                                 : colors.primary 
                             }
                           ] 
@@ -891,7 +894,7 @@ export default function HealthProgressScreen() {
                     styles.timelineDay, 
                     { 
                       color: selectedSystem === 'psychological' 
-                        ? colors.psychological 
+                        ? colors.psychological || '#9c5cff' 
                         : colors.primary 
                     }
                   ]}
