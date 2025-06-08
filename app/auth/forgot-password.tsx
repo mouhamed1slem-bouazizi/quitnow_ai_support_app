@@ -11,7 +11,7 @@ import {
   ActivityIndicator,
   Alert
 } from 'react-native';
-import { Link, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { useAuthStore } from '@/store/auth-store';
 import { useThemeColors } from '@/constants/colors';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -54,7 +54,7 @@ export default function ForgotPasswordScreen() {
             style={styles.backButton}
             onPress={() => router.back()}
           >
-            <ArrowLeft size={24} color={colors.primary} />
+            <ArrowLeft size={24} color={colors.text} />
           </TouchableOpacity>
           
           <View style={styles.header}>
@@ -76,13 +76,14 @@ export default function ForgotPasswordScreen() {
           {resetSent ? (
             <View style={[styles.successContainer, { backgroundColor: `${colors.success}20` }]}>
               <Text style={[styles.successText, { color: colors.success }]}>
-                Password reset email sent! Check your inbox and follow the instructions to reset your password.
+                Password reset email sent! Check your inbox for further instructions.
               </Text>
-              <Link href="/auth" asChild>
-                <TouchableOpacity style={[styles.backToLoginButton, { backgroundColor: colors.primary }]}>
-                  <Text style={styles.backToLoginText}>Back to Login</Text>
-                </TouchableOpacity>
-              </Link>
+              <TouchableOpacity 
+                style={[styles.backToLoginButton, { backgroundColor: colors.primary }]}
+                onPress={() => router.replace('/auth')}
+              >
+                <Text style={styles.backToLoginText}>Back to Login</Text>
+              </TouchableOpacity>
             </View>
           ) : (
             <View style={styles.form}>
@@ -123,14 +124,6 @@ export default function ForgotPasswordScreen() {
                   <Text style={styles.resetButtonText}>Send Reset Link</Text>
                 )}
               </TouchableOpacity>
-              
-              <Link href="/auth" asChild>
-                <TouchableOpacity style={styles.cancelContainer}>
-                  <Text style={[styles.cancelText, { color: colors.textSecondary }]}>
-                    Cancel
-                  </Text>
-                </TouchableOpacity>
-              </Link>
             </View>
           )}
         </ScrollView>
@@ -149,9 +142,13 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     padding: 24,
+    justifyContent: 'center',
   },
   backButton: {
-    marginBottom: 24,
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    zIndex: 10,
   },
   header: {
     alignItems: 'center',
@@ -197,8 +194,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   backToLoginButton: {
-    paddingHorizontal: 24,
     paddingVertical: 12,
+    paddingHorizontal: 24,
     borderRadius: 8,
   },
   backToLoginText: {
@@ -212,7 +209,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 16,
   },
   iconContainer: {
     width: 48,
@@ -235,7 +232,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    marginTop: 8,
   },
   buttonDisabled: {
     opacity: 0.7,
@@ -244,11 +241,5 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
-  },
-  cancelContainer: {
-    alignItems: 'center',
-  },
-  cancelText: {
-    fontSize: 16,
   },
 });
