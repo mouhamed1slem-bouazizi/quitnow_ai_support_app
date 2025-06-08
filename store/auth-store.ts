@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User } from 'firebase/auth';
-import { signIn as firebaseSignIn, signUp, signOut, resetPassword, getCurrentUser } from '@/services/firebase';
+import { signIn as firebaseSignIn, signUp as firebaseSignUp, signOut as firebaseSignOut, resetPassword, getCurrentUser } from '@/services/firebase';
 
 interface AuthState {
   user: User | null;
@@ -59,7 +59,7 @@ export const useAuthStore = create<AuthState>()(
         console.log('Auth store: signUp called with email:', email);
         set({ isLoading: true, error: null });
         try {
-          const user = await signUp(email, password, displayName);
+          const user = await firebaseSignUp(email, password, displayName);
           console.log('Auth store: signUp successful, user:', user?.email);
           set({ user, isAuthenticated: true, isLoading: false });
           return user;
@@ -74,7 +74,7 @@ export const useAuthStore = create<AuthState>()(
         console.log('Auth store: signOut called');
         set({ isLoading: true, error: null });
         try {
-          await signOut();
+          await firebaseSignOut();
           console.log('Auth store: signOut successful');
           set({ user: null, isAuthenticated: false, isLoading: false });
         } catch (error: any) {

@@ -49,22 +49,18 @@ let app;
 let auth: Auth;
 let db: Firestore;
 
-try {
-  console.log('Checking if Firebase app is already initialized');
-  if (getApps().length === 0) {
-    console.log('Initializing Firebase with config:', Object.keys(firebaseConfig));
-    app = initializeApp(firebaseConfig);
-  } else {
-    console.log('Firebase app already initialized, getting existing app');
-    app = getApp();
-  }
-  auth = getAuth(app);
-  db = getFirestore(app);
-  console.log('Firebase initialized successfully');
-} catch (error) {
-  console.error('Error initializing Firebase:', error);
-  throw error;
+// Fix for Firebase initialization
+if (getApps().length === 0) {
+  console.log('Initializing Firebase app for the first time');
+  app = initializeApp(firebaseConfig);
+} else {
+  console.log('Firebase app already initialized, getting existing app');
+  app = getApp();
 }
+
+auth = getAuth(app);
+db = getFirestore(app);
+console.log('Firebase initialized successfully');
 
 // Auth functions
 export const signUp = async (email: string, password: string, displayName: string) => {
@@ -79,7 +75,6 @@ export const signUp = async (email: string, password: string, displayName: strin
       console.log('Firebase service: signUp successful, user:', userCredential.user.email);
       
       // Create an empty profile document for the user
-      // Important: Do NOT set onboarded to true here - let the onboarding process handle that
       const emptyProfile: Profile = {
         name: displayName,
         createdAt: new Date().toISOString(),
