@@ -10,7 +10,26 @@ import {
   User,
   Auth
 } from 'firebase/auth';
-import { getFirestore, Firestore } from 'firebase/firestore';
+import { 
+  getFirestore, 
+  doc, 
+  setDoc, 
+  getDoc, 
+  updateDoc, 
+  collection, 
+  addDoc, 
+  deleteDoc, 
+  query, 
+  where, 
+  orderBy, 
+  getDocs,
+  Firestore,
+  DocumentData,
+  QueryDocumentSnapshot,
+  Timestamp,
+  serverTimestamp
+} from 'firebase/firestore';
+import { DiaryEntry, MoodType, Profile } from '@/types/user';
 
 // Firebase configuration
 // IMPORTANT: In production, these should come from environment variables
@@ -106,6 +125,169 @@ export const subscribeToAuthChanges = (callback: (user: User | null) => void) =>
     console.log('Firebase service: auth state changed, user:', user?.email || 'null');
     callback(user);
   });
+};
+
+// Firestore functions for user data
+export const saveUserProfile = async (userId: string, profileData: Profile): Promise<void> => {
+  try {
+    console.log('Firebase service: saveUserProfile called for user:', userId);
+    const userRef = doc(db, 'users', userId);
+    
+    // Convert dates to Firestore timestamps
+    const firestoreData = {
+      ...profileData,
+      quitDate: profileData.quitDate, // Keep as ISO string for compatibility
+      updatedAt: serverTimestamp()
+    };
+    
+    await setDoc(userRef, firestoreData, { merge: true });
+    console.log('Firebase service: saveUserProfile successful');
+  } catch (error: any) {
+    console.error('Firebase service: saveUserProfile error:', error);
+    throw new Error(`Failed to save user profile: ${error.message}`);
+  }
+};
+
+export const getUserProfile = async (userId: string): Promise<Profile | null> => {
+  try {
+    console.log('Firebase service: getUserProfile called for user:', userId);
+    const userRef = doc(db, 'users', userId);
+    const userDoc = await getDoc(userRef);
+    
+    if (userDoc.exists()) {
+      const userData = userDoc.data() as Profile;
+      console.log('Firebase service: getUserProfile successful');
+      return userData;
+    } else {
+      console.log('Firebase service: getUserProfile - no profile found');
+      return null;
+    }
+  } catch (error: any) {
+    console.error('Firebase service: getUserProfile error:', error);
+    throw new Error(`Failed to get user profile: ${error.message}`);
+  }
+};
+
+export const updateUserProfile = async (userId: string, updates: Partial<Profile>): Promise<void> => {
+  try {
+    console.log('Firebase service: updateUserProfile called for user:', userId);
+    const userRef = doc(db, 'users', userId);
+    
+    // Add updatedAt timestamp
+    const updatedData = {
+      ...updates,
+      updatedAt: serverTimestamp()
+    };
+    
+    await updateDoc(userRef, updatedData);
+    console.log('Firebase service: updateUserProfile successful');
+  } catch (error: any) {
+    console.error('Firebase service: updateUserProfile error:', error);
+    throw new Error(`Failed to update user profile: ${error.message}`);
+  }
+};
+
+export const saveUserSettings = async (userId: string, settings: { theme: string, onboarded: boolean }): Promise<void> => {
+  try {
+    console.log('Firebase service: saveUserSettings called for user:', userId);
+    const userRef = doc(db, 'users', userId);
+    
+    await updateDoc(userRef, {
+      settings,
+      updatedAt: serverTimestamp()
+    });
+    console.log('Firebase service: saveUserSettings successful');
+  } catch (error: any) {
+    console.error('Firebase service: saveUserSettings error:', error);
+    throw new Error(`Failed to save user settings: ${error.message}`);
+  }
+};
+
+// Diary entries functions
+export const saveDiaryEntry = async (userId: string, entry: DiaryEntry): Promise<string> => {
+  try {
+    console.log('Firebase service: saveDiaryEntry called for user:', userId);
+    const entriesRef = collection(db, 'users', userId, 'diaryEntries');
+    
+    // Convert entry to Firestore format
+    const firestoreEntry = {
+      content: entry.content,
+      mood: entry.mood,
+      timestamp: entry.timestamp, // Keep as ISO string for compatibility
+      createdAt: serverTimestamp()
+    };
+    
+    // If entry has an ID, use it as the document ID
+    if (entry.id) {
+      const entryRef = doc(entriesRef, entry.id);
+      await setDoc(entryRef, firestoreEntry);
+      console.log('Firebase service: saveDiaryEntry successful with ID:', entry.id);
+      return entry.id;
+    } else {
+      // Otherwise, let Firestore generate an ID
+      const docRef = await addDoc(entriesRef, firestoreEntry);
+      console.log('Firebase service: saveDiaryEntry successful with new ID:', docRef.id);
+      return docRef.id;
+    }
+  } catch (error: any) {
+    console.error('Firebase service: saveDiaryEntry error:', error);
+    throw new Error(`Failed to save diary entry: ${error.message}`);
+  }
+};
+
+export const getDiaryEntries = async (userId: string): Promise<DiaryEntry[]> => {
+  try {
+    console.log('Firebase service: getDiaryEntries called for user:', userId);
+    const entriesRef = collection(db, 'users', userId, 'diaryEntries');
+    const q = query(entriesRef, orderBy('timestamp', 'desc'));
+    const querySnapshot = await getDocs(q);
+    
+    const entries: DiaryEntry[] = [];
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      entries.push({
+        id: doc.id,
+        content: data.content,
+        mood: data.mood as MoodType,
+        timestamp: data.timestamp
+      });
+    });
+    
+    console.log(`Firebase service: getDiaryEntries successful, found ${entries.length} entries`);
+    return entries;
+  } catch (error: any) {
+    console.error('Firebase service: getDiaryEntries error:', error);
+    throw new Error(`Failed to get diary entries: ${error.message}`);
+  }
+};
+
+export const deleteDiaryEntry = async (userId: string, entryId: string): Promise<void> => {
+  try {
+    console.log('Firebase service: deleteDiaryEntry called for user:', userId, 'entry:', entryId);
+    const entryRef = doc(db, 'users', userId, 'diaryEntries', entryId);
+    await deleteDoc(entryRef);
+    console.log('Firebase service: deleteDiaryEntry successful');
+  } catch (error: any) {
+    console.error('Firebase service: deleteDiaryEntry error:', error);
+    throw new Error(`Failed to delete diary entry: ${error.message}`);
+  }
+};
+
+// Cravings counter
+export const updateCravingsHandled = async (userId: string, count: number): Promise<void> => {
+  try {
+    console.log('Firebase service: updateCravingsHandled called for user:', userId);
+    const userRef = doc(db, 'users', userId);
+    
+    await updateDoc(userRef, {
+      cravingsHandled: count,
+      updatedAt: serverTimestamp()
+    });
+    console.log('Firebase service: updateCravingsHandled successful');
+  } catch (error: any) {
+    console.error('Firebase service: updateCravingsHandled error:', error);
+    throw new Error(`Failed to update cravings handled: ${error.message}`);
+  }
 };
 
 export { auth, db };

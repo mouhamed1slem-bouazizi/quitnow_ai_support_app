@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Modal, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Modal, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useUserStore } from '@/store/user-store';
 import { useAuthStore } from '@/store/auth-store';
@@ -11,7 +11,7 @@ import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/dat
 export default function OnboardingScreen() {
   const router = useRouter();
   const colors = useThemeColors();
-  const { setProfile, setOnboarded, theme } = useUserStore();
+  const { setProfile, setOnboarded, theme, syncWithFirestore } = useUserStore();
   const { user } = useAuthStore();
   
   // Set default quit date to yesterday
@@ -27,20 +27,48 @@ export default function OnboardingScreen() {
   const [step, setStep] = useState(1);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const handleComplete = () => {
-    setProfile({
-      name,
-      quitDate: quitDate.toISOString(),
-      cigarettesPerDay: parseInt(cigarettesPerDay, 10) || 20,
-      cigarettePrice: parseFloat(cigarettePrice) || 10,
-      currency,
-      goals: [],
-      achievements: [],
-    });
+  const handleComplete = async () => {
+    if (!user) {
+      Alert.alert('Error', 'You must be logged in to complete onboarding.');
+      return;
+    }
     
-    setOnboarded(true);
-    router.replace('/(tabs)');
+    setIsSubmitting(true);
+    
+    try {
+      // Create the profile object
+      const profileData = {
+        name,
+        quitDate: quitDate.toISOString(),
+        cigarettesPerDay: parseInt(cigarettesPerDay, 10) || 20,
+        cigarettePrice: parseFloat(cigarettePrice) || 10,
+        currency,
+        goals: [],
+        achievements: [],
+      };
+      
+      // Set the profile in the store
+      setProfile(profileData);
+      
+      // Mark as onboarded
+      setOnboarded(true);
+      
+      // Sync with Firestore
+      await syncWithFirestore();
+      
+      // Navigate to the main app
+      router.replace('/(tabs)');
+    } catch (error) {
+      console.error('Error during onboarding completion:', error);
+      Alert.alert(
+        'Error',
+        'There was a problem saving your profile. Please try again.'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   const nextStep = () => {
@@ -303,10 +331,20 @@ export default function OnboardingScreen() {
                   <Text style={[styles.backButtonText, { color: colors.primary }]}>Back</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.button, styles.buttonSmall, { backgroundColor: colors.primary }]}
+                  style={[
+                    styles.button, 
+                    styles.buttonSmall, 
+                    { backgroundColor: colors.primary },
+                    isSubmitting && styles.buttonDisabled
+                  ]}
                   onPress={handleComplete}
+                  disabled={isSubmitting}
                 >
-                  <Text style={styles.buttonText}>Let's Begin</Text>
+                  {isSubmitting ? (
+                    <ActivityIndicator color="white" size="small" />
+                  ) : (
+                    <Text style={styles.buttonText}>Let's Begin</Text>
+                  )}
                 </TouchableOpacity>
               </View>
             </View>

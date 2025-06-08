@@ -10,6 +10,7 @@ import { useUserStore } from '@/store/user-store';
 import { useColorScheme } from 'react-native';
 import { subscribeToAuthChanges } from '@/services/firebase';
 import { useAuthStore } from '@/store/auth-store';
+import LoadingScreen from '@/components/LoadingScreen';
 
 export const unstable_settings = {
   initialRouteName: "(tabs)",
@@ -67,15 +68,42 @@ export default function RootLayout() {
 function RootLayoutNav() {
   const router = useRouter();
   const segments = useSegments();
-  const { isAuthenticated } = useAuthStore();
-  const { onboarded } = useUserStore();
-  const { theme } = useUserStore();
+  const { isAuthenticated, user } = useAuthStore();
+  const { 
+    onboarded, 
+    theme, 
+    loadFromFirestore, 
+    isLoading, 
+    error, 
+    setError 
+  } = useUserStore();
   const systemColorScheme = useColorScheme();
   const [isNavigationReady, setIsNavigationReady] = useState(false);
+  const [dataLoaded, setDataLoaded] = useState(false);
   
   // Determine which theme to use
   const effectiveTheme = theme === 'system' ? systemColorScheme : theme;
   const statusBarStyle = effectiveTheme === 'dark' ? 'light' : 'dark';
+  
+  // Load user data from Firestore when authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      console.log('Loading user data from Firestore');
+      loadFromFirestore()
+        .then(() => {
+          console.log('User data loaded successfully');
+          setDataLoaded(true);
+        })
+        .catch(err => {
+          console.error('Error loading user data:', err);
+          setError(`Failed to load user data: ${err.message}`);
+          setDataLoaded(true); // Still mark as loaded so we can proceed
+        });
+    } else {
+      // If not authenticated, we don't need to load data
+      setDataLoaded(true);
+    }
+  }, [isAuthenticated, user, loadFromFirestore, setError]);
   
   // Handle routing based on authentication state
   useEffect(() => {
@@ -88,7 +116,7 @@ function RootLayoutNav() {
   }, []);
   
   useEffect(() => {
-    if (!isNavigationReady) return;
+    if (!isNavigationReady || !dataLoaded) return;
     
     const inAuthGroup = segments[0] === 'auth';
     const inOnboardingGroup = segments[0] === 'onboarding';
@@ -114,7 +142,12 @@ function RootLayoutNav() {
       console.log('Redirecting to tabs');
       router.replace('/(tabs)');
     }
-  }, [isAuthenticated, onboarded, segments, router, isNavigationReady]);
+  }, [isAuthenticated, onboarded, segments, router, isNavigationReady, dataLoaded]);
+  
+  // Show loading screen while data is being loaded
+  if (isAuthenticated && isLoading && !dataLoaded) {
+    return <LoadingScreen message="Loading your data..." />;
+  }
   
   return (
     <SafeAreaProvider>

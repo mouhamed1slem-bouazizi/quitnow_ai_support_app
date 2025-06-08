@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -8,7 +8,8 @@ import {
   ScrollView, 
   KeyboardAvoidingView, 
   Platform,
-  Alert
+  Alert,
+  ActivityIndicator
 } from 'react-native';
 import { Stack } from 'expo-router';
 import { useUserStore } from '@/store/user-store';
@@ -17,18 +18,23 @@ import { useThemeColors } from '@/constants/colors';
 import MoodSelector from '@/components/MoodSelector';
 import MoodChart from '@/components/MoodChart';
 import { getMoodOption } from '@/constants/moods';
-import { Trash2 } from 'lucide-react-native';
+import { Trash2, RefreshCw } from 'lucide-react-native';
 
 export default function DiaryScreen() {
   const colors = useThemeColors();
   const [diaryContent, setDiaryContent] = useState('');
   const [selectedMood, setSelectedMood] = useState<MoodType>('neutral');
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const inputRef = useRef<TextInput>(null);
   
   // Ensure we always have an array, even if diaryEntries is undefined
   const diaryEntries = useUserStore(state => state.diaryEntries || []);
   const addDiaryEntry = useUserStore(state => state.addDiaryEntry);
   const removeDiaryEntry = useUserStore(state => state.removeDiaryEntry);
+  const loadFromFirestore = useUserStore(state => state.loadFromFirestore);
+  const isLoading = useUserStore(state => state.isLoading);
+  const error = useUserStore(state => state.error);
+  const setError = useUserStore(state => state.setError);
   
   const handleAddEntry = () => {
     if (diaryContent.trim() === '') {
@@ -59,6 +65,19 @@ export default function DiaryScreen() {
     );
   };
   
+  const handleRefreshEntries = async () => {
+    setIsRefreshing(true);
+    setError(null);
+    
+    try {
+      await loadFromFirestore();
+    } catch (error: any) {
+      Alert.alert('Error', `Failed to refresh diary entries: ${error.message}`);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+  
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleString('en-US', {
@@ -77,7 +96,22 @@ export default function DiaryScreen() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={100}
     >
-      <Stack.Screen options={{ title: 'My Diary' }} />
+      <Stack.Screen options={{ 
+        title: 'My Diary',
+        headerRight: () => (
+          <TouchableOpacity 
+            style={styles.refreshButton}
+            onPress={handleRefreshEntries}
+            disabled={isRefreshing || isLoading}
+          >
+            {isRefreshing ? (
+              <ActivityIndicator size="small" color={colors.primary} />
+            ) : (
+              <RefreshCw size={20} color={colors.primary} />
+            )}
+          </TouchableOpacity>
+        ),
+      }} />
       
       <ScrollView style={styles.scrollView}>
         <MoodChart />
@@ -116,7 +150,19 @@ export default function DiaryScreen() {
         </View>
         
         <View style={styles.entriesContainer}>
-          <Text style={[styles.sectionTitle, { color: colors.text }]}>Your Diary Entries</Text>
+          <View style={styles.entriesHeader}>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Your Diary Entries</Text>
+            
+            {isLoading && !isRefreshing && (
+              <ActivityIndicator size="small" color={colors.primary} />
+            )}
+          </View>
+          
+          {error && (
+            <Text style={[styles.errorText, { color: colors.danger }]}>
+              {error}
+            </Text>
+          )}
           
           {diaryEntries.length === 0 ? (
             <View style={[styles.emptyState, { backgroundColor: colors.card }]}>
@@ -212,6 +258,19 @@ const styles = StyleSheet.create({
   },
   entriesContainer: {
     marginBottom: 20,
+  },
+  entriesHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  refreshButton: {
+    padding: 8,
+  },
+  errorText: {
+    marginBottom: 16,
+    fontSize: 14,
   },
   emptyState: {
     padding: 20,
