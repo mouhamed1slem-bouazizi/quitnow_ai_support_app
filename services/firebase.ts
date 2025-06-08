@@ -10,20 +10,20 @@ import {
   User
 } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
+import Constants from 'expo-constants';
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+// Get Firebase configuration from environment variables
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID",
-  measurementId: "YOUR_MEASUREMENT_ID"
+  apiKey: Constants.expoConfig?.extra?.firebaseApiKey,
+  authDomain: Constants.expoConfig?.extra?.firebaseAuthDomain,
+  projectId: Constants.expoConfig?.extra?.firebaseProjectId,
+  storageBucket: Constants.expoConfig?.extra?.firebaseStorageBucket,
+  messagingSenderId: Constants.expoConfig?.extra?.firebaseMessagingSenderId,
+  appId: Constants.expoConfig?.extra?.firebaseAppId,
+  measurementId: Constants.expoConfig?.extra?.firebaseMeasurementId
 };
 
-// Initialize Firebase
+// Initialize Firebase only if config is valid
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
