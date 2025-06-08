@@ -31,6 +31,8 @@ export default function RootLayout() {
 
   // Handle routing based on authentication state
   useEffect(() => {
+    if (!loaded) return;
+    
     const inAuthGroup = segments[0] === 'auth';
     const inOnboardingGroup = segments[0] === 'onboarding';
     
@@ -55,9 +57,11 @@ export default function RootLayout() {
       console.log('Redirecting to tabs');
       router.replace('/(tabs)');
     }
-  }, [isAuthenticated, onboarded, segments, router]);
+  }, [isAuthenticated, onboarded, segments, router, loaded]);
 
   useEffect(() => {
+    if (!loaded) return;
+    
     // Subscribe to auth state changes
     console.log('Setting up auth state listener');
     const unsubscribe = subscribeToAuthChanges((user) => {
@@ -69,7 +73,7 @@ export default function RootLayout() {
       console.log('Cleaning up auth state listener');
       unsubscribe();
     };
-  }, [setUser]);
+  }, [setUser, loaded]);
 
   useEffect(() => {
     if (error) {
