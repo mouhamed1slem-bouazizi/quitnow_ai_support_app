@@ -2,13 +2,6 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Profile, ThemeType, DiaryEntry, MoodType, MoodRecord } from '@/types/user';
-import { 
-  saveUserProfile, 
-  updateUserProfile, 
-  saveDiaryEntry, 
-  getDiaryEntries, 
-  deleteDiaryEntry 
-} from '@/services/firebase';
 
 interface ProgressMetrics {
   smokeFreeTime: {
@@ -27,10 +20,6 @@ interface UserState {
   theme: ThemeType;
   diaryEntries: DiaryEntry[];
   cravingsHandled: number;
-  userId: string | null;
-  isSyncing: boolean;
-  lastSyncTime: string | null;
-  
   setOnboarded: (onboarded: boolean) => void;
   setProfile: (profile: Profile) => void;
   updateProfile: (updates: Partial<Profile>) => void;
@@ -43,13 +32,6 @@ interface UserState {
   recordMood: (mood: MoodType, note?: string) => void;
   incrementCravingsHandled: () => void;
   getRecentMoods: () => MoodRecord[];
-  
-  // Firestore sync functions
-  setUserId: (userId: string | null) => void;
-  syncProfileToFirestore: () => Promise<boolean>;
-  loadProfileFromFirestore: () => Promise<boolean>;
-  syncDiaryEntriesToFirestore: () => Promise<boolean>;
-  loadDiaryEntriesFromFirestore: () => Promise<boolean>;
 }
 
 // Initial state to ensure diaryEntries is always an array
@@ -59,9 +41,6 @@ const initialState = {
   theme: 'system' as ThemeType,
   diaryEntries: [] as DiaryEntry[],
   cravingsHandled: 0,
-  userId: null,
-  isSyncing: false,
-  lastSyncTime: null,
 };
 
 export const useUserStore = create<UserState>()(
@@ -71,26 +50,11 @@ export const useUserStore = create<UserState>()(
       
       setOnboarded: (onboarded) => set({ onboarded }),
       
-      setProfile: (profile) => {
-        set({ profile });
-        // Sync to Firestore if userId is available
-        const { userId } = get();
-        if (userId) {
-          get().syncProfileToFirestore();
-        }
-      },
+      setProfile: (profile) => set({ profile }),
       
-      updateProfile: (updates) => {
-        set((state) => ({
-          profile: state.profile ? { ...state.profile, ...updates } : null,
-        }));
-        
-        // Sync to Firestore if userId is available
-        const { userId, profile } = get();
-        if (userId && profile) {
-          get().syncProfileToFirestore();
-        }
-      },
+      updateProfile: (updates) => set((state) => ({
+        profile: state.profile ? { ...state.profile, ...updates } : null,
+      })),
       
       resetProgress: () => set((state) => ({
         profile: state.profile ? {
@@ -111,20 +75,12 @@ export const useUserStore = create<UserState>()(
         }
         
         // Add the achievement
-        const updatedProfile = {
-          ...state.profile,
-          achievements: [...state.profile.achievements, achievementId]
+        return {
+          profile: {
+            ...state.profile,
+            achievements: [...state.profile.achievements, achievementId]
+          }
         };
-        
-        // Sync to Firestore if userId is available
-        const { userId } = get();
-        if (userId) {
-          updateUserProfile(userId, { 
-            achievements: updatedProfile.achievements 
-          }).catch(console.error);
-        }
-        
-        return { profile: updatedProfile };
       }),
       
       calculateProgress: () => {
@@ -173,7 +129,7 @@ export const useUserStore = create<UserState>()(
         };
       },
       
-      addDiaryEntry: (content, mood) => {
+      addDiaryEntry: (content, mood) => set((state) => {
         const newEntry: DiaryEntry = {
           id: Date.now().toString(),
           timestamp: new Date().toISOString(),
@@ -181,55 +137,44 @@ export const useUserStore = create<UserState>()(
           mood
         };
         
-        // Update local state
-        set((state) => {
-          const currentEntries = state.diaryEntries || [];
-          return {
-            diaryEntries: [newEntry, ...currentEntries]
-          };
-        });
+        // Ensure diaryEntries is always an array
+        const currentEntries = state.diaryEntries || [];
         
-        // Sync to Firestore if userId is available
-        const { userId } = get();
-        if (userId) {
-          saveDiaryEntry(userId, newEntry).catch(console.error);
-        }
-      },
+        return {
+          diaryEntries: [newEntry, ...currentEntries]
+        };
+      }),
       
-      removeDiaryEntry: (id) => {
-        // Update local state
-        set((state) => ({
-          diaryEntries: (state.diaryEntries || []).filter(entry => entry.id !== id)
-        }));
-        
-        // Sync to Firestore if userId is available
-        const { userId } = get();
-        if (userId) {
-          deleteDiaryEntry(userId, id).catch(console.error);
-        }
-      },
+      removeDiaryEntry: (id) => set((state) => ({
+        // Ensure diaryEntries is always an array
+        diaryEntries: (state.diaryEntries || []).filter(entry => entry.id !== id)
+      })),
       
-      recordMood: (mood, note) => {
+      recordMood: (mood, note) => set((state) => {
         // Implementation depends on how you want to store mood data
         // For now, we'll just add it as a diary entry if a note is provided
         if (note) {
-          get().addDiaryEntry(note, mood);
+          const newEntry: DiaryEntry = {
+            id: Date.now().toString(),
+            timestamp: new Date().toISOString(),
+            content: note,
+            mood
+          };
+          
+          // Ensure diaryEntries is always an array
+          const currentEntries = state.diaryEntries || [];
+          
+          return {
+            diaryEntries: [newEntry, ...currentEntries]
+          };
         }
-      },
+        
+        return state;
+      }),
 
-      incrementCravingsHandled: () => {
-        set((state) => {
-          const newCount = state.cravingsHandled + 1;
-          
-          // Sync to Firestore if userId is available
-          const { userId } = get();
-          if (userId) {
-            updateUserProfile(userId, { cravingsHandled: newCount }).catch(console.error);
-          }
-          
-          return { cravingsHandled: newCount };
-        });
-      },
+      incrementCravingsHandled: () => set((state) => ({
+        cravingsHandled: state.cravingsHandled + 1
+      })),
 
       getRecentMoods: () => {
         const { diaryEntries } = get();
@@ -254,128 +199,6 @@ export const useUserStore = create<UserState>()(
           }));
         
         return recentMoods;
-      },
-      
-      // Firestore sync functions
-      setUserId: (userId) => set({ userId }),
-      
-      syncProfileToFirestore: async () => {
-        const { userId, profile, isSyncing } = get();
-        
-        if (!userId || !profile || isSyncing) {
-          return false;
-        }
-        
-        set({ isSyncing: true });
-        
-        try {
-          await saveUserProfile(userId, {
-            ...profile,
-            lastUpdated: new Date().toISOString()
-          });
-          
-          set({ 
-            isSyncing: false,
-            lastSyncTime: new Date().toISOString()
-          });
-          
-          return true;
-        } catch (error) {
-          console.error('Error syncing profile to Firestore:', error);
-          set({ isSyncing: false });
-          return false;
-        }
-      },
-      
-      loadProfileFromFirestore: async () => {
-        const { userId, isSyncing } = get();
-        
-        if (!userId || isSyncing) {
-          return false;
-        }
-        
-        set({ isSyncing: true });
-        
-        try {
-          const profileData = await getUserProfile(userId);
-          
-          if (profileData) {
-            // Update local state with Firestore data
-            set({ 
-              profile: profileData as Profile,
-              onboarded: true,
-              isSyncing: false,
-              lastSyncTime: new Date().toISOString()
-            });
-            return true;
-          }
-          
-          set({ isSyncing: false });
-          return false;
-        } catch (error) {
-          console.error('Error loading profile from Firestore:', error);
-          set({ isSyncing: false });
-          return false;
-        }
-      },
-      
-      syncDiaryEntriesToFirestore: async () => {
-        const { userId, diaryEntries, isSyncing } = get();
-        
-        if (!userId || diaryEntries.length === 0 || isSyncing) {
-          return false;
-        }
-        
-        set({ isSyncing: true });
-        
-        try {
-          // Sync each diary entry
-          for (const entry of diaryEntries) {
-            await saveDiaryEntry(userId, entry);
-          }
-          
-          set({ 
-            isSyncing: false,
-            lastSyncTime: new Date().toISOString()
-          });
-          
-          return true;
-        } catch (error) {
-          console.error('Error syncing diary entries to Firestore:', error);
-          set({ isSyncing: false });
-          return false;
-        }
-      },
-      
-      loadDiaryEntriesFromFirestore: async () => {
-        const { userId, isSyncing } = get();
-        
-        if (!userId || isSyncing) {
-          return false;
-        }
-        
-        set({ isSyncing: true });
-        
-        try {
-          const entries = await getDiaryEntries(userId);
-          
-          if (entries) {
-            // Update local state with Firestore data
-            set({ 
-              diaryEntries: entries as DiaryEntry[],
-              isSyncing: false,
-              lastSyncTime: new Date().toISOString()
-            });
-            return true;
-          }
-          
-          set({ isSyncing: false });
-          return false;
-        } catch (error) {
-          console.error('Error loading diary entries from Firestore:', error);
-          set({ isSyncing: false });
-          return false;
-        }
       },
     }),
     {
