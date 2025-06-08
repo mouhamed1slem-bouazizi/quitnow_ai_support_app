@@ -9,6 +9,13 @@ export interface Profile {
   currency: string;
   goals: string[];
   achievements: string[];
+  createdAt?: string;
+  updatedAt?: string;
+  cravingsHandled?: number;
+  settings?: {
+    theme: string;
+    onboarded: boolean;
+  };
 }
 
 export interface DiaryEntry {
