@@ -46,6 +46,7 @@ export default function SignUpScreen() {
     
     try {
       await signUp(email, password, name);
+      console.log('Sign up successful, redirecting to onboarding');
       // After successful sign up, the auth store will update and the app will redirect to onboarding
       router.replace('/onboarding');
     } catch (error: any) {

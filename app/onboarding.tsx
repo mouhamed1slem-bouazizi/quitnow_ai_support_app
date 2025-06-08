@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useUserStore } from '@/store/user-store';
@@ -28,6 +28,11 @@ export default function OnboardingScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Log the current step for debugging
+  useEffect(() => {
+    console.log('Current onboarding step:', step);
+  }, [step]);
   
   const handleComplete = async () => {
     if (!user) {
@@ -72,7 +77,7 @@ export default function OnboardingScreen() {
       // Navigate to the main app
       console.log('Navigating to main app');
       router.replace('/(tabs)');
-    } catch (error: any) {
+    } catch (error) {
       console.error('Error during onboarding completion:', error);
       Alert.alert(
         'Error',
@@ -84,10 +89,12 @@ export default function OnboardingScreen() {
   };
   
   const nextStep = () => {
+    console.log(`Moving from step ${step} to step ${step + 1}`);
     setStep(step + 1);
   };
   
   const prevStep = () => {
+    console.log(`Moving from step ${step} to step ${step - 1}`);
     setStep(step - 1);
   };
   

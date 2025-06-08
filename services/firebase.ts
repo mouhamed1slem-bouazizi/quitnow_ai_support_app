@@ -79,6 +79,7 @@ export const signUp = async (email: string, password: string, displayName: strin
       console.log('Firebase service: signUp successful, user:', userCredential.user.email);
       
       // Create an empty profile document for the user
+      // Important: Do NOT set onboarded to true here - let the onboarding process handle that
       const emptyProfile: Profile = {
         name: displayName,
         createdAt: new Date().toISOString(),
