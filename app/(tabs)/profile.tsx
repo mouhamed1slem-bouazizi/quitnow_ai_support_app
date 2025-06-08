@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Modal, Platform, Switch, useColorScheme, Pressable, Alert } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useUserStore } from '@/store/user-store';
+import { useAuthStore } from '@/store/auth-store';
 import { useThemeColors } from '@/constants/colors';
 import { User, Calendar, DollarSign, Cigarette, LogOut, Save, Clock, Moon, Sun, Smartphone } from 'lucide-react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
@@ -10,6 +11,7 @@ export default function ProfileScreen() {
   const router = useRouter();
   const colors = useThemeColors();
   const { profile, updateProfile, resetProgress, theme, setTheme } = useUserStore();
+  const { signOut, isLoading } = useAuthStore();
   
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(profile?.name || "");
@@ -28,6 +30,9 @@ export default function ProfileScreen() {
   const [resetQuitDate, setResetQuitDate] = useState(yesterday);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  
+  // Sign out confirmation
+  const [showSignOutModal, setShowSignOutModal] = useState(false);
   
   if (!profile) return null;
   
@@ -63,6 +68,15 @@ export default function ProfileScreen() {
     
     setShowResetModal(false);
     router.replace('/(tabs)');
+  };
+  
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      // After sign out, the auth store will update and the app will redirect
+    } catch (error) {
+      Alert.alert('Error', 'Failed to sign out. Please try again.');
+    }
   };
   
   const handleDateChange = (event: DateTimePickerEvent, selectedDate?: Date) => {
@@ -306,6 +320,17 @@ export default function ProfileScreen() {
           <Text style={[styles.resetButtonText, { color: colors.danger }]}>Reset Progress</Text>
         </TouchableOpacity>
         
+        <TouchableOpacity
+          style={[styles.signOutButton, { borderColor: colors.textSecondary }]}
+          onPress={() => setShowSignOutModal(true)}
+          disabled={isLoading}
+        >
+          <LogOut size={20} color={colors.textSecondary} />
+          <Text style={[styles.signOutButtonText, { color: colors.textSecondary }]}>
+            {isLoading ? 'Signing Out...' : 'Sign Out'}
+          </Text>
+        </TouchableOpacity>
+        
         <View style={styles.spacer} />
         
         {/* Reset Confirmation Modal */}
@@ -368,6 +393,45 @@ export default function ProfileScreen() {
                   onPress={confirmReset}
                 >
                   <Text style={styles.confirmButtonText}>Reset</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
+        
+        {/* Sign Out Confirmation Modal */}
+        <Modal
+          visible={showSignOutModal}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setShowSignOutModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>Sign Out</Text>
+              <Text style={[styles.modalText, { color: colors.textSecondary }]}>
+                Are you sure you want to sign out of your account?
+              </Text>
+              
+              <View style={styles.modalButtons}>
+                <TouchableOpacity 
+                  style={styles.cancelButton}
+                  onPress={() => setShowSignOutModal(false)}
+                >
+                  <Text style={[styles.cancelButtonText, { color: colors.textSecondary }]}>Cancel</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity 
+                  style={[styles.confirmButton, { backgroundColor: colors.textSecondary }]}
+                  onPress={() => {
+                    setShowSignOutModal(false);
+                    handleSignOut();
+                  }}
+                  disabled={isLoading}
+                >
+                  <Text style={styles.confirmButtonText}>
+                    {isLoading ? 'Signing Out...' : 'Sign Out'}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -625,8 +689,22 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 8,
     borderWidth: 1,
+    marginBottom: 16,
   },
   resetButtonText: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginLeft: 8,
+  },
+  signOutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  signOutButtonText: {
     fontSize: 16,
     fontWeight: '500',
     marginLeft: 8,

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef } from 'react';
 import { 
   View, 
   Text, 
@@ -20,14 +20,13 @@ import { getMoodOption } from '@/constants/moods';
 import { Trash2 } from 'lucide-react-native';
 
 export default function DiaryScreen() {
-  // Use useMemo to prevent infinite loop with useThemeColors
   const colors = useThemeColors();
   const [diaryContent, setDiaryContent] = useState('');
   const [selectedMood, setSelectedMood] = useState<MoodType>('neutral');
   const inputRef = useRef<TextInput>(null);
   
   // Ensure we always have an array, even if diaryEntries is undefined
-  const diaryEntries = useUserStore(state => state.diaryEntries ?? []);
+  const diaryEntries = useUserStore(state => state.diaryEntries || []);
   const addDiaryEntry = useUserStore(state => state.addDiaryEntry);
   const removeDiaryEntry = useUserStore(state => state.removeDiaryEntry);
   
@@ -144,11 +143,11 @@ export default function DiaryScreen() {
                         <View 
                           style={[
                             styles.moodBadge, 
-                            { backgroundColor: moodOption.color || '#A9A9A9' }
+                            { backgroundColor: moodOption?.color || '#A9A9A9' }
                           ]}
                         >
-                          <Text style={styles.moodEmoji}>{moodOption.emoji || '😐'}</Text>
-                          <Text style={styles.moodLabel}>{moodOption.label || 'Neutral'}</Text>
+                          <Text style={styles.moodEmoji}>{moodOption?.emoji || '😐'}</Text>
+                          <Text style={styles.moodLabel}>{moodOption?.label || 'Neutral'}</Text>
                         </View>
                       </View>
                     </View>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Modal, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useUserStore } from '@/store/user-store';
+import { useAuthStore } from '@/store/auth-store';
 import { useThemeColors } from '@/constants/colors';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar, DollarSign, User, Cigarette, Clock } from 'lucide-react-native';
@@ -11,12 +12,14 @@ export default function OnboardingScreen() {
   const router = useRouter();
   const colors = useThemeColors();
   const { setProfile, setOnboarded, theme } = useUserStore();
+  const { user } = useAuthStore();
   
   // Set default quit date to yesterday
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
   
-  const [name, setName] = useState('');
+  // Use the user's display name from Firebase if available
+  const [name, setName] = useState(user?.displayName || '');
   const [cigarettesPerDay, setCigarettesPerDay] = useState('20');
   const [cigarettePrice, setCigarettePrice] = useState('10');
   const [currency, setCurrency] = useState('USD');

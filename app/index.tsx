@@ -1,9 +1,21 @@
 import { Redirect } from 'expo-router';
 import { useUserStore } from '@/store/user-store';
+import { useAuthStore } from '@/store/auth-store';
 
 export default function Index() {
-  const { isOnboarded } = useUserStore();
+  const { onboarded } = useUserStore();
+  const { isAuthenticated } = useAuthStore();
   
-  // Redirect to the appropriate screen based on onboarding status
-  return isOnboarded ? <Redirect href="/(tabs)" /> : <Redirect href="/onboarding" />;
+  // If not authenticated, redirect to auth
+  if (!isAuthenticated) {
+    return <Redirect href="/auth" />;
+  }
+  
+  // If authenticated but not onboarded, redirect to onboarding
+  if (!onboarded) {
+    return <Redirect href="/onboarding" />;
+  }
+  
+  // If authenticated and onboarded, redirect to tabs
+  return <Redirect href="/(tabs)" />;
 }

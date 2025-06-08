@@ -8,6 +8,8 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AchievementChecker from '@/components/AchievementChecker';
 import { useUserStore } from '@/store/user-store';
 import { useColorScheme } from 'react-native';
+import { subscribeToAuthChanges } from '@/services/firebase';
+import { useAuthStore } from '@/store/auth-store';
 
 export const unstable_settings = {
   initialRouteName: "(tabs)",
@@ -20,6 +22,17 @@ export default function RootLayout() {
   const [loaded, error] = useFonts({
     ...FontAwesome.font,
   });
+  
+  const setUser = useAuthStore(state => state.setUser);
+
+  useEffect(() => {
+    // Subscribe to auth state changes
+    const unsubscribe = subscribeToAuthChanges((user) => {
+      setUser(user);
+    });
+
+    return () => unsubscribe();
+  }, [setUser]);
 
   useEffect(() => {
     if (error) {
@@ -56,6 +69,7 @@ function RootLayoutNav() {
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
+        <Stack.Screen name="auth" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: "modal" }} />
       </Stack>
     </SafeAreaProvider>
