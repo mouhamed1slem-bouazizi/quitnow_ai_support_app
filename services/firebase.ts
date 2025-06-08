@@ -7,9 +7,10 @@ import {
   onAuthStateChanged,
   sendPasswordResetEmail,
   updateProfile,
-  User
+  User,
+  Auth
 } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { getFirestore, Firestore } from 'firebase/firestore';
 
 // Firebase configuration - hardcoded for now to fix the issue
 // IMPORTANT: In production, these should come from environment variables
@@ -26,8 +27,8 @@ const firebaseConfig = {
 
 // Initialize Firebase
 let app;
-let auth;
-let db;
+let auth: Auth;
+let db: Firestore;
 
 try {
   console.log('Initializing Firebase with config:', Object.keys(firebaseConfig));

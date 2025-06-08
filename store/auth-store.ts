@@ -11,8 +11,8 @@ interface AuthState {
   isAuthenticated: boolean;
   
   setUser: (user: User | null) => void;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, displayName: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<User | void>;
+  signUp: (email: string, password: string, displayName: string) => Promise<User | void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   clearError: () => void;
