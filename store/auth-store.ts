@@ -18,13 +18,18 @@ interface AuthState {
   clearError: () => void;
 }
 
+// Initial state
+const initialState = {
+  user: null,
+  isLoading: false,
+  error: null,
+  isAuthenticated: false,
+};
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
-      user: null,
-      isLoading: false,
-      error: null,
-      isAuthenticated: false,
+      ...initialState,
       
       setUser: (user) => set({ 
         user, 
@@ -86,6 +91,25 @@ export const useAuthStore = create<AuthState>()(
         user: state.user,
         isAuthenticated: state.isAuthenticated
       }),
+      version: 1,
+      migrate: (persistedState: any, version) => {
+        // If we're at the current version, just return the state
+        if (version === 1) {
+          return {
+            ...initialState,
+            ...persistedState,
+            // Make sure isAuthenticated is consistent with user
+            isAuthenticated: !!persistedState?.user
+          } as AuthState;
+        }
+        
+        // Handle migration from older versions
+        return {
+          ...initialState,
+          ...persistedState,
+          isAuthenticated: !!persistedState?.user
+        } as AuthState;
+      }
     }
   )
 );

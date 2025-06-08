@@ -13,6 +13,13 @@ interface MoodSelectorProps {
 export default function MoodSelector({ selectedMood, onSelectMood, compact = false }: MoodSelectorProps) {
   const colors = useThemeColors();
   
+  // Ensure we have a valid onSelectMood function
+  const handleSelectMood = (mood: MoodType) => {
+    if (typeof onSelectMood === 'function') {
+      onSelectMood(mood);
+    }
+  };
+  
   return (
     <View style={styles.container}>
       {!compact && (
@@ -30,7 +37,7 @@ export default function MoodSelector({ selectedMood, onSelectMood, compact = fal
               },
               compact && styles.compactButton
             ]}
-            onPress={() => onSelectMood(mood.type)}
+            onPress={() => handleSelectMood(mood.type)}
           >
             <Text style={styles.moodEmoji}>{mood.emoji}</Text>
             {!compact && (

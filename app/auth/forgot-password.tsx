@@ -11,11 +11,11 @@ import {
   ActivityIndicator,
   Alert
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { useAuthStore } from '@/store/auth-store';
 import { useThemeColors } from '@/constants/colors';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Mail, ArrowLeft, Send } from 'lucide-react-native';
+import { Mail, ArrowLeft } from 'lucide-react-native';
 
 export default function ForgotPasswordScreen() {
   const router = useRouter();
@@ -60,7 +60,7 @@ export default function ForgotPasswordScreen() {
           <View style={styles.header}>
             <Text style={[styles.title, { color: colors.primary }]}>Reset Password</Text>
             <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
-              Enter your email to receive a password reset link
+              Enter your email address and we'll send you a link to reset your password
             </Text>
           </View>
           
@@ -75,15 +75,14 @@ export default function ForgotPasswordScreen() {
           
           {resetSent ? (
             <View style={[styles.successContainer, { backgroundColor: `${colors.success}20` }]}>
-              <Text style={[styles.successText, { color: colors.text }]}>
-                Password reset instructions have been sent to your email address.
+              <Text style={[styles.successText, { color: colors.success }]}>
+                Password reset email sent! Check your inbox and follow the instructions to reset your password.
               </Text>
-              <TouchableOpacity
-                style={[styles.backToLoginButton, { backgroundColor: colors.primary }]}
-                onPress={() => router.replace('/auth')}
-              >
-                <Text style={styles.backToLoginText}>Back to Login</Text>
-              </TouchableOpacity>
+              <Link href="/auth" asChild>
+                <TouchableOpacity style={[styles.backToLoginButton, { backgroundColor: colors.primary }]}>
+                  <Text style={styles.backToLoginText}>Back to Login</Text>
+                </TouchableOpacity>
+              </Link>
             </View>
           ) : (
             <View style={styles.form}>
@@ -121,12 +120,17 @@ export default function ForgotPasswordScreen() {
                 {isLoading ? (
                   <ActivityIndicator color="white" />
                 ) : (
-                  <>
-                    <Send size={20} color="white" style={styles.buttonIcon} />
-                    <Text style={styles.resetButtonText}>Send Reset Link</Text>
-                  </>
+                  <Text style={styles.resetButtonText}>Send Reset Link</Text>
                 )}
               </TouchableOpacity>
+              
+              <Link href="/auth" asChild>
+                <TouchableOpacity style={styles.cancelContainer}>
+                  <Text style={[styles.cancelText, { color: colors.textSecondary }]}>
+                    Cancel
+                  </Text>
+                </TouchableOpacity>
+              </Link>
             </View>
           )}
         </ScrollView>
@@ -145,13 +149,9 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     padding: 24,
-    justifyContent: 'center',
   },
   backButton: {
-    position: 'absolute',
-    top: 16,
-    left: 16,
-    zIndex: 10,
+    marginBottom: 24,
   },
   header: {
     alignItems: 'center',
@@ -197,8 +197,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   backToLoginButton: {
-    paddingVertical: 12,
     paddingHorizontal: 24,
+    paddingVertical: 12,
     borderRadius: 8,
   },
   backToLoginText: {
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 24,
   },
   iconContainer: {
     width: 48,
@@ -231,21 +231,24 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   resetButton: {
-    flexDirection: 'row',
     height: 56,
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
+    marginBottom: 16,
   },
   buttonDisabled: {
     opacity: 0.7,
-  },
-  buttonIcon: {
-    marginRight: 8,
   },
   resetButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: '600',
+  },
+  cancelContainer: {
+    alignItems: 'center',
+  },
+  cancelText: {
+    fontSize: 16,
   },
 });

@@ -138,7 +138,7 @@ export const useUserStore = create<UserState>()(
         };
         
         // Ensure diaryEntries is always an array
-        const currentEntries = state.diaryEntries ?? [];
+        const currentEntries = state.diaryEntries || [];
         
         return {
           diaryEntries: [newEntry, ...currentEntries]
@@ -147,7 +147,7 @@ export const useUserStore = create<UserState>()(
       
       removeDiaryEntry: (id) => set((state) => ({
         // Ensure diaryEntries is always an array
-        diaryEntries: (state.diaryEntries ?? []).filter(entry => entry.id !== id)
+        diaryEntries: (state.diaryEntries || []).filter(entry => entry.id !== id)
       })),
       
       recordMood: (mood, note) => set((state) => {
@@ -162,7 +162,7 @@ export const useUserStore = create<UserState>()(
           };
           
           // Ensure diaryEntries is always an array
-          const currentEntries = state.diaryEntries ?? [];
+          const currentEntries = state.diaryEntries || [];
           
           return {
             diaryEntries: [newEntry, ...currentEntries]
