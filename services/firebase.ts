@@ -10,33 +10,21 @@ import {
   User
 } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
-import Constants from 'expo-constants';
 
-// Get Firebase configuration from environment variables
+// Firebase configuration - hardcoded for now to fix the issue
+// IMPORTANT: In production, these should come from environment variables
 const firebaseConfig = {
-  apiKey: Constants.expoConfig?.extra?.firebaseApiKey || "",
-  authDomain: Constants.expoConfig?.extra?.firebaseAuthDomain || "",
-  databaseURL: Constants.expoConfig?.extra?.firebaseDatabaseURL || "",
-  projectId: Constants.expoConfig?.extra?.firebaseProjectId || "",
-  storageBucket: Constants.expoConfig?.extra?.firebaseStorageBucket || "",
-  messagingSenderId: Constants.expoConfig?.extra?.firebaseMessagingSenderId || "",
-  appId: Constants.expoConfig?.extra?.firebaseAppId || "",
-  measurementId: Constants.expoConfig?.extra?.firebaseMeasurementId || ""
+  apiKey: "AIzaSyB_t9_0fUlS9AbIEuIyoJB-nhIeUTviu8Y",
+  authDomain: "app-d7397.firebaseapp.com",
+  databaseURL: "https://app-d7397-default-rtdb.firebaseio.com",
+  projectId: "app-d7397",
+  storageBucket: "app-d7397.firebasestorage.app",
+  messagingSenderId: "538283025810",
+  appId: "1:538283025810:web:7dc45efc541c332e2a8d4b",
+  measurementId: "G-20JJF8G8CD"
 };
 
-// Log the config for debugging (remove in production)
-console.log("Firebase config:", {
-  apiKey: firebaseConfig.apiKey ? "Set" : "Not set",
-  authDomain: firebaseConfig.authDomain ? "Set" : "Not set",
-  databaseURL: firebaseConfig.databaseURL ? "Set" : "Not set",
-  projectId: firebaseConfig.projectId ? "Set" : "Not set",
-  storageBucket: firebaseConfig.storageBucket ? "Set" : "Not set",
-  messagingSenderId: firebaseConfig.messagingSenderId ? "Set" : "Not set",
-  appId: firebaseConfig.appId ? "Set" : "Not set",
-  measurementId: firebaseConfig.measurementId ? "Set" : "Not set"
-});
-
-// Initialize Firebase only if config is valid
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
