@@ -2,9 +2,8 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Modal, Platform, Switch, useColorScheme, Pressable, Alert, ActivityIndicator } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useUserStore } from '@/store/user-store';
-import { useAuthStore } from '@/store/auth-store';
 import { useThemeColors } from '@/constants/colors';
-import { User, Calendar, DollarSign, Cigarette, LogOut, Save, Clock, Moon, Sun, Smartphone, RefreshCw } from 'lucide-react-native';
+import { User, Calendar, DollarSign, Cigarette, Save, Clock, Moon, Sun, Smartphone, RefreshCw } from 'lucide-react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 
 export default function ProfileScreen() {
@@ -16,14 +15,9 @@ export default function ProfileScreen() {
     resetProgress, 
     theme, 
     setTheme, 
-    syncWithFirestore, 
-    loadFromFirestore,
-    isSyncing,
-    lastSynced,
     error,
     setError
   } = useUserStore();
-  const { signOut, isLoading } = useAuthStore();
   
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(profile?.name || "");
@@ -43,17 +37,11 @@ export default function ProfileScreen() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
   
-  // Sign out confirmation
-  const [showSignOutModal, setShowSignOutModal] = useState(false);
-  
-  // Sync status
-  const [isSyncingManually, setIsSyncingManually] = useState(false);
-  
   if (!profile) return null;
   
   const handleSaveChanges = async () => {
     try {
-      await updateProfile({
+      updateProfile({
         name: editedName,
         cigarettesPerDay: parseInt(editedCigarettesPerDay, 10) || 20,
         cigarettePrice: parseFloat(editedCigarettePrice) || 10,
@@ -74,15 +62,11 @@ export default function ProfileScreen() {
   const confirmReset = async () => {
     try {
       // Reset progress (achievements and goals)
-      await resetProgress();
+      resetProgress();
       
       // Set new profile with selected quit date
-      await useUserStore.getState().setProfile({
-        name: profile.name,
+      updateProfile({
         quitDate: resetQuitDate.toISOString(),
-        cigarettesPerDay: profile.cigarettesPerDay,
-        cigarettePrice: profile.cigarettePrice,
-        currency: profile.currency,
         goals: [],
         achievements: [],
       });
@@ -91,43 +75,6 @@ export default function ProfileScreen() {
       router.replace('/(tabs)');
     } catch (error: any) {
       Alert.alert('Error', `Failed to reset progress: ${error.message}`);
-    }
-  };
-  
-  const handleSignOut = async () => {
-    try {
-      await signOut();
-      // After sign out, the auth store will update and the app will redirect
-    } catch (error) {
-      Alert.alert('Error', 'Failed to sign out. Please try again.');
-    }
-  };
-  
-  const handleManualSync = async () => {
-    setIsSyncingManually(true);
-    setError(null);
-    
-    try {
-      await syncWithFirestore();
-      Alert.alert('Success', 'Your data has been successfully synced to the cloud.');
-    } catch (error: any) {
-      Alert.alert('Sync Error', `Failed to sync data: ${error.message}`);
-    } finally {
-      setIsSyncingManually(false);
-    }
-  };
-  
-  const handleManualLoad = async () => {
-    setIsSyncingManually(true);
-    setError(null);
-    
-    try {
-      await loadFromFirestore();
-      Alert.alert('Success', 'Your data has been successfully loaded from the cloud.');
-    } catch (error: any) {
-      Alert.alert('Load Error', `Failed to load data: ${error.message}`);
-    } finally {
-      setIsSyncingManually(false);
     }
   };
   
@@ -173,20 +120,6 @@ export default function ProfileScreen() {
     return date.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
-    });
-  };
-  
-  const formatSyncTime = (dateString: string | null) => {
-    if (!dateString) return 'Never';
-    
-    const date = new Date(dateString);
-    return date.toLocaleString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
     });
   };
   
@@ -303,68 +236,6 @@ export default function ProfileScreen() {
           </View>
         </View>
         
-        {/* Cloud Sync Card */}
-        <View style={[styles.syncCard, { backgroundColor: colors.card }]}>
-          <Text style={[styles.syncTitle, { color: colors.text }]}>Cloud Sync</Text>
-          
-          <View style={styles.syncInfo}>
-            <Text style={[styles.syncLabel, { color: colors.textSecondary }]}>Last synced:</Text>
-            <Text style={[styles.syncValue, { color: colors.text }]}>
-              {formatSyncTime(lastSynced)}
-            </Text>
-          </View>
-          
-          {error && (
-            <Text style={[styles.errorText, { color: colors.danger }]}>
-              {error}
-            </Text>
-          )}
-          
-          <View style={styles.syncButtons}>
-            <TouchableOpacity
-              style={[
-                styles.syncButton, 
-                { backgroundColor: `${colors.primary}20` },
-                (isSyncing || isSyncingManually) && styles.buttonDisabled
-              ]}
-              onPress={handleManualSync}
-              disabled={isSyncing || isSyncingManually}
-            >
-              {isSyncingManually ? (
-                <ActivityIndicator size="small" color={colors.primary} />
-              ) : (
-                <>
-                  <RefreshCw size={18} color={colors.primary} style={styles.syncIcon} />
-                  <Text style={[styles.syncButtonText, { color: colors.primary }]}>
-                    Save to Cloud
-                  </Text>
-                </>
-              )}
-            </TouchableOpacity>
-            
-            <TouchableOpacity
-              style={[
-                styles.syncButton, 
-                { backgroundColor: `${colors.primary}20` },
-                (isSyncing || isSyncingManually) && styles.buttonDisabled
-              ]}
-              onPress={handleManualLoad}
-              disabled={isSyncing || isSyncingManually}
-            >
-              {isSyncingManually ? (
-                <ActivityIndicator size="small" color={colors.primary} />
-              ) : (
-                <>
-                  <RefreshCw size={18} color={colors.primary} style={styles.syncIcon} />
-                  <Text style={[styles.syncButtonText, { color: colors.primary }]}>
-                    Load from Cloud
-                  </Text>
-                </>
-              )}
-            </TouchableOpacity>
-          </View>
-        </View>
-        
         {/* Theme Selection */}
         <View style={[styles.themeCard, { backgroundColor: colors.card }]}>
           <Text style={[styles.themeTitle, { color: colors.text }]}>Appearance</Text>
@@ -444,19 +315,8 @@ export default function ProfileScreen() {
           style={[styles.resetButton, { borderColor: colors.danger }]}
           onPress={handleReset}
         >
-          <LogOut size={20} color={colors.danger} />
+          <RefreshCw size={20} color={colors.danger} />
           <Text style={[styles.resetButtonText, { color: colors.danger }]}>Reset Progress</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          style={[styles.signOutButton, { borderColor: colors.textSecondary }]}
-          onPress={() => setShowSignOutModal(true)}
-          disabled={isLoading}
-        >
-          <LogOut size={20} color={colors.textSecondary} />
-          <Text style={[styles.signOutButtonText, { color: colors.textSecondary }]}>
-            {isLoading ? 'Signing Out...' : 'Sign Out'}
-          </Text>
         </TouchableOpacity>
         
         <View style={styles.spacer} />
@@ -521,45 +381,6 @@ export default function ProfileScreen() {
                   onPress={confirmReset}
                 >
                   <Text style={styles.confirmButtonText}>Reset</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        </Modal>
-        
-        {/* Sign Out Confirmation Modal */}
-        <Modal
-          visible={showSignOutModal}
-          transparent={true}
-          animationType="fade"
-          onRequestClose={() => setShowSignOutModal(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={[styles.modalContent, { backgroundColor: colors.background }]}>
-              <Text style={[styles.modalTitle, { color: colors.text }]}>Sign Out</Text>
-              <Text style={[styles.modalText, { color: colors.textSecondary }]}>
-                Are you sure you want to sign out of your account?
-              </Text>
-              
-              <View style={styles.modalButtons}>
-                <TouchableOpacity 
-                  style={styles.cancelButton}
-                  onPress={() => setShowSignOutModal(false)}
-                >
-                  <Text style={[styles.cancelButtonText, { color: colors.textSecondary }]}>Cancel</Text>
-                </TouchableOpacity>
-                
-                <TouchableOpacity 
-                  style={[styles.confirmButton, { backgroundColor: colors.textSecondary }]}
-                  onPress={() => {
-                    setShowSignOutModal(false);
-                    handleSignOut();
-                  }}
-                  disabled={isLoading}
-                >
-                  <Text style={styles.confirmButtonText}>
-                    {isLoading ? 'Signing Out...' : 'Sign Out'}
-                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -759,58 +580,6 @@ const styles = StyleSheet.create({
     height: 1,
     marginVertical: 4,
   },
-  syncCard: {
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  syncTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 16,
-  },
-  syncInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  syncLabel: {
-    fontSize: 14,
-    marginRight: 8,
-  },
-  syncValue: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  syncButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  syncButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 8,
-    flex: 0.48,
-  },
-  syncIcon: {
-    marginRight: 8,
-  },
-  syncButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
-  },
-  errorText: {
-    fontSize: 14,
-    marginBottom: 16,
-  },
   themeCard: {
     borderRadius: 16,
     padding: 16,
@@ -872,19 +641,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   resetButtonText: {
-    fontSize: 16,
-    fontWeight: '500',
-    marginLeft: 8,
-  },
-  signOutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 14,
-    borderRadius: 8,
-    borderWidth: 1,
-  },
-  signOutButtonText: {
     fontSize: 16,
     fontWeight: '500',
     marginLeft: 8,

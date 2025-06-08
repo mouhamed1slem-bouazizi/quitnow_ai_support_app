@@ -2,17 +2,6 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Profile, ThemeType, DiaryEntry, MoodType, MoodRecord } from '@/types/user';
-import { 
-  saveUserProfile, 
-  getUserProfile, 
-  updateUserProfile, 
-  saveDiaryEntry, 
-  getDiaryEntries, 
-  deleteDiaryEntry,
-  saveUserSettings,
-  updateCravingsHandled
-} from '@/services/firebase';
-import { getCurrentUser } from '@/services/firebase';
 
 interface ProgressMetrics {
   smokeFreeTime: {
@@ -33,25 +22,19 @@ interface UserState {
   cravingsHandled: number;
   isLoading: boolean;
   error: string | null;
-  isSyncing: boolean;
-  lastSynced: string | null;
   
   setOnboarded: (onboarded: boolean) => void;
-  setProfile: (profile: Profile) => Promise<void>;
-  updateProfile: (updates: Partial<Profile>) => Promise<void>;
-  resetProgress: () => Promise<void>;
+  setProfile: (profile: Profile) => void;
+  updateProfile: (updates: Partial<Profile>) => void;
+  resetProgress: () => void;
   setTheme: (theme: ThemeType) => void;
   calculateProgress: () => ProgressMetrics;
-  addAchievement: (achievementId: string) => Promise<void>;
-  addDiaryEntry: (content: string, mood: MoodType) => Promise<void>;
-  removeDiaryEntry: (id: string) => Promise<void>;
-  recordMood: (mood: MoodType, note?: string) => Promise<void>;
-  incrementCravingsHandled: () => Promise<void>;
+  addAchievement: (achievementId: string) => void;
+  addDiaryEntry: (content: string, mood: MoodType) => void;
+  removeDiaryEntry: (id: string) => void;
+  recordMood: (mood: MoodType, note?: string) => void;
+  incrementCravingsHandled: () => void;
   getRecentMoods: () => MoodRecord[];
-  
-  // Firestore sync functions
-  syncWithFirestore: () => Promise<void>;
-  loadFromFirestore: () => Promise<void>;
   setError: (error: string | null) => void;
   setIsLoading: (isLoading: boolean) => void;
 }
@@ -65,8 +48,6 @@ const initialState = {
   cravingsHandled: 0,
   isLoading: false,
   error: null,
-  isSyncing: false,
-  lastSynced: null,
 };
 
 export const useUserStore = create<UserState>()(
@@ -76,63 +57,19 @@ export const useUserStore = create<UserState>()(
       
       setOnboarded: (onboarded) => {
         set({ onboarded });
-        
-        // Save to Firestore if user is authenticated
-        const user = getCurrentUser();
-        if (user) {
-          saveUserSettings(user.uid, { 
-            onboarded, 
-            theme: get().theme 
-          }).catch(error => {
-            console.error('Failed to save onboarded status to Firestore:', error);
-            set(state => ({ error: `Failed to save onboarded status: ${error.message}` }));
-          });
-        }
       },
       
-      setProfile: async (profile) => {
+      setProfile: (profile) => {
         set({ profile });
-        
-        // Save to Firestore if user is authenticated
-        const user = getCurrentUser();
-        if (user && profile) {
-          try {
-            console.log('Saving profile to Firestore:', JSON.stringify(profile));
-            await saveUserProfile(user.uid, profile);
-            console.log('Profile saved to Firestore successfully');
-          } catch (error: any) {
-            console.error('Failed to save profile to Firestore:', error);
-            set(state => ({ error: `Failed to save profile: ${error.message}` }));
-            throw error; // Re-throw to allow handling in the calling function
-          }
-        } else {
-          console.warn('Cannot save profile: No authenticated user or profile is null');
-        }
       },
       
-      updateProfile: async (updates) => {
+      updateProfile: (updates) => {
         set((state) => ({
           profile: state.profile ? { ...state.profile, ...updates } : null,
         }));
-        
-        // Save to Firestore if user is authenticated
-        const user = getCurrentUser();
-        if (user && updates) {
-          try {
-            console.log('Updating profile in Firestore:', JSON.stringify(updates));
-            await updateUserProfile(user.uid, updates);
-            console.log('Profile updated in Firestore successfully');
-          } catch (error: any) {
-            console.error('Failed to update profile in Firestore:', error);
-            set(state => ({ error: `Failed to update profile: ${error.message}` }));
-            throw error; // Re-throw to allow handling in the calling function
-          }
-        } else {
-          console.warn('Cannot update profile: No authenticated user or updates is empty');
-        }
       },
       
-      resetProgress: async () => {
+      resetProgress: () => {
         set((state) => ({
           profile: state.profile ? {
             ...state.profile,
@@ -140,43 +77,13 @@ export const useUserStore = create<UserState>()(
             achievements: [],
           } : null,
         }));
-        
-        // Update in Firestore if user is authenticated
-        const user = getCurrentUser();
-        if (user) {
-          try {
-            await updateUserProfile(user.uid, { 
-              goals: [], 
-              achievements: [] 
-            });
-            console.log('Progress reset in Firestore successfully');
-          } catch (error: any) {
-            console.error('Failed to reset progress in Firestore:', error);
-            set(state => ({ error: `Failed to reset progress: ${error.message}` }));
-            throw error;
-          }
-        } else {
-          console.warn('Cannot reset progress: No authenticated user');
-        }
       },
       
       setTheme: (theme) => {
         set({ theme });
-        
-        // Save to Firestore if user is authenticated
-        const user = getCurrentUser();
-        if (user) {
-          saveUserSettings(user.uid, { 
-            theme, 
-            onboarded: get().onboarded 
-          }).catch(error => {
-            console.error('Failed to save theme to Firestore:', error);
-            set(state => ({ error: `Failed to save theme: ${error.message}` }));
-          });
-        }
       },
       
-      addAchievement: async (achievementId) => {
+      addAchievement: (achievementId) => {
         const state = get();
         if (!state.profile) {
           console.warn('Cannot add achievement: No profile');
@@ -199,23 +106,6 @@ export const useUserStore = create<UserState>()(
             achievements: updatedAchievements
           } : null
         }));
-        
-        // Save to Firestore if user is authenticated
-        const user = getCurrentUser();
-        if (user) {
-          try {
-            await updateUserProfile(user.uid, { 
-              achievements: updatedAchievements 
-            });
-            console.log('Achievement added to Firestore successfully:', achievementId);
-          } catch (error: any) {
-            console.error('Failed to add achievement to Firestore:', error);
-            set(state => ({ error: `Failed to add achievement: ${error.message}` }));
-            throw error;
-          }
-        } else {
-          console.warn('Cannot add achievement: No authenticated user');
-        }
       },
       
       calculateProgress: () => {
@@ -266,7 +156,7 @@ export const useUserStore = create<UserState>()(
         };
       },
       
-      addDiaryEntry: async (content, mood) => {
+      addDiaryEntry: (content, mood) => {
         const newEntry: DiaryEntry = {
           id: Date.now().toString(),
           timestamp: new Date().toISOString(),
@@ -283,83 +173,29 @@ export const useUserStore = create<UserState>()(
             diaryEntries: [newEntry, ...currentEntries]
           };
         });
-        
-        // Save to Firestore if user is authenticated
-        const user = getCurrentUser();
-        if (user) {
-          try {
-            const id = await saveDiaryEntry(user.uid, newEntry);
-            console.log('Diary entry saved to Firestore successfully with ID:', id);
-            
-            // Update the entry ID if Firestore generated a different one
-            if (id !== newEntry.id) {
-              set((state) => ({
-                diaryEntries: state.diaryEntries.map(entry => 
-                  entry.id === newEntry.id ? { ...entry, id } : entry
-                )
-              }));
-            }
-          } catch (error: any) {
-            console.error('Failed to save diary entry to Firestore:', error);
-            set(state => ({ error: `Failed to save diary entry: ${error.message}` }));
-            throw error;
-          }
-        } else {
-          console.warn('Cannot save diary entry: No authenticated user');
-        }
       },
       
-      removeDiaryEntry: async (id) => {
+      removeDiaryEntry: (id) => {
         // Update local state
         set((state) => ({
           // Ensure diaryEntries is always an array
           diaryEntries: (state.diaryEntries || []).filter(entry => entry.id !== id)
         }));
-        
-        // Delete from Firestore if user is authenticated
-        const user = getCurrentUser();
-        if (user) {
-          try {
-            await deleteDiaryEntry(user.uid, id);
-            console.log('Diary entry deleted from Firestore successfully:', id);
-          } catch (error: any) {
-            console.error('Failed to delete diary entry from Firestore:', error);
-            set(state => ({ error: `Failed to delete diary entry: ${error.message}` }));
-            throw error;
-          }
-        } else {
-          console.warn('Cannot delete diary entry: No authenticated user');
-        }
       },
       
-      recordMood: async (mood, note) => {
+      recordMood: (mood, note) => {
         // Implementation depends on how you want to store mood data
         // For now, we'll just add it as a diary entry if a note is provided
         if (note) {
-          await get().addDiaryEntry(note, mood);
+          get().addDiaryEntry(note, mood);
         }
       },
 
-      incrementCravingsHandled: async () => {
+      incrementCravingsHandled: () => {
         const newCount = get().cravingsHandled + 1;
         
         // Update local state
         set({ cravingsHandled: newCount });
-        
-        // Update in Firestore if user is authenticated
-        const user = getCurrentUser();
-        if (user) {
-          try {
-            await updateCravingsHandled(user.uid, newCount);
-            console.log('Cravings handled count updated in Firestore successfully:', newCount);
-          } catch (error: any) {
-            console.error('Failed to update cravings handled in Firestore:', error);
-            set(state => ({ error: `Failed to update cravings handled: ${error.message}` }));
-            throw error;
-          }
-        } else {
-          console.warn('Cannot update cravings handled: No authenticated user');
-        }
       },
 
       getRecentMoods: () => {
@@ -385,111 +221,6 @@ export const useUserStore = create<UserState>()(
           }));
         
         return recentMoods;
-      },
-      
-      // Firestore sync functions
-      syncWithFirestore: async () => {
-        const user = getCurrentUser();
-        if (!user) {
-          console.log('Cannot sync with Firestore: No authenticated user');
-          return;
-        }
-        
-        set({ isSyncing: true, error: null });
-        
-        try {
-          const state = get();
-          
-          // Save profile if it exists
-          if (state.profile) {
-            console.log('Syncing profile to Firestore:', JSON.stringify(state.profile));
-            await saveUserProfile(user.uid, state.profile);
-          } else {
-            console.warn('No profile to sync to Firestore');
-          }
-          
-          // Save settings
-          console.log('Syncing settings to Firestore:', { theme: state.theme, onboarded: state.onboarded });
-          await saveUserSettings(user.uid, {
-            theme: state.theme,
-            onboarded: state.onboarded
-          });
-          
-          // Save cravings handled
-          console.log('Syncing cravings handled to Firestore:', state.cravingsHandled);
-          await updateCravingsHandled(user.uid, state.cravingsHandled);
-          
-          // Save diary entries
-          if (state.diaryEntries && state.diaryEntries.length > 0) {
-            console.log(`Syncing ${state.diaryEntries.length} diary entries to Firestore`);
-            for (const entry of state.diaryEntries) {
-              await saveDiaryEntry(user.uid, entry);
-            }
-          } else {
-            console.log('No diary entries to sync to Firestore');
-          }
-          
-          set({ 
-            isSyncing: false, 
-            lastSynced: new Date().toISOString(),
-            error: null
-          });
-          
-          console.log('Successfully synced with Firestore');
-        } catch (error: any) {
-          console.error('Failed to sync with Firestore:', error);
-          set({ 
-            isSyncing: false, 
-            error: `Failed to sync with Firestore: ${error.message}` 
-          });
-          throw error;
-        }
-      },
-      
-      loadFromFirestore: async () => {
-        const user = getCurrentUser();
-        if (!user) {
-          console.log('Cannot load from Firestore: No authenticated user');
-          return;
-        }
-        
-        set({ isLoading: true, error: null });
-        
-        try {
-          // Load user profile
-          console.log('Loading user profile from Firestore');
-          const profile = await getUserProfile(user.uid);
-          
-          // Load diary entries
-          console.log('Loading diary entries from Firestore');
-          const diaryEntries = await getDiaryEntries(user.uid);
-          
-          // Update state with loaded data
-          set((state) => {
-            console.log('Updating state with loaded data:', { 
-              profileLoaded: !!profile, 
-              entriesLoaded: diaryEntries.length 
-            });
-            
-            return {
-              profile: profile || state.profile,
-              diaryEntries: diaryEntries.length > 0 ? diaryEntries : state.diaryEntries,
-              cravingsHandled: profile?.cravingsHandled || state.cravingsHandled,
-              isLoading: false,
-              lastSynced: new Date().toISOString(),
-              error: null
-            };
-          });
-          
-          console.log('Successfully loaded data from Firestore');
-        } catch (error: any) {
-          console.error('Failed to load from Firestore:', error);
-          set({ 
-            isLoading: false, 
-            error: `Failed to load from Firestore: ${error.message}` 
-          });
-          throw error;
-        }
       },
       
       setError: (error) => set({ error }),

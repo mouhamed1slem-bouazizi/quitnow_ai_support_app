@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useUserStore } from '@/store/user-store';
-import { useAuthStore } from '@/store/auth-store';
 import { useThemeColors } from '@/constants/colors';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Calendar, DollarSign, User, Cigarette, Clock } from 'lucide-react-native';
@@ -11,15 +10,13 @@ import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/dat
 export default function OnboardingScreen() {
   const router = useRouter();
   const colors = useThemeColors();
-  const { setProfile, setOnboarded, theme, syncWithFirestore } = useUserStore();
-  const { user } = useAuthStore();
+  const { setProfile, setOnboarded, theme } = useUserStore();
   
   // Set default quit date to yesterday
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
   
-  // Use the user's display name from Firebase if available
-  const [name, setName] = useState(user?.displayName || '');
+  const [name, setName] = useState('');
   const [cigarettesPerDay, setCigarettesPerDay] = useState('20');
   const [cigarettePrice, setCigarettePrice] = useState('10');
   const [currency, setCurrency] = useState('USD');
@@ -35,11 +32,6 @@ export default function OnboardingScreen() {
   }, [step]);
   
   const handleComplete = async () => {
-    if (!user) {
-      Alert.alert('Error', 'You must be logged in to complete onboarding.');
-      return;
-    }
-    
     setIsSubmitting(true);
     
     try {
@@ -61,18 +53,13 @@ export default function OnboardingScreen() {
       
       console.log('Created profile data:', JSON.stringify(profileData));
       
-      // Set the profile in the store and save to Firestore
-      await setProfile(profileData);
+      // Set the profile in the store
+      setProfile(profileData);
       console.log('Profile set in store');
       
       // Mark as onboarded
       setOnboarded(true);
       console.log('Marked as onboarded');
-      
-      // Sync with Firestore to ensure all data is saved
-      console.log('Syncing with Firestore...');
-      await syncWithFirestore();
-      console.log('Sync with Firestore complete');
       
       // Navigate to the main app
       console.log('Navigating to main app');

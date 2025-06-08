@@ -8,8 +8,6 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AchievementChecker from '@/components/AchievementChecker';
 import { useUserStore } from '@/store/user-store';
 import { useColorScheme } from 'react-native';
-import { subscribeToAuthChanges } from '@/services/firebase';
-import { useAuthStore } from '@/store/auth-store';
 import LoadingScreen from '@/components/LoadingScreen';
 
 export const unstable_settings = {
@@ -24,7 +22,6 @@ export default function RootLayout() {
     ...FontAwesome.font,
   });
   
-  const setUser = useAuthStore(state => state.setUser);
   const [isReady, setIsReady] = useState(false);
   
   // Handle font loading
@@ -41,22 +38,6 @@ export default function RootLayout() {
     }
   }, [loaded, error]);
 
-  // Set up auth state listener
-  useEffect(() => {
-    if (!loaded) return;
-    
-    console.log('Setting up auth state listener');
-    const unsubscribe = subscribeToAuthChanges((user) => {
-      console.log('Auth state changed in _layout, user:', user?.email || 'null');
-      setUser(user);
-    });
-
-    return () => {
-      console.log('Cleaning up auth state listener');
-      unsubscribe();
-    };
-  }, [setUser, loaded]);
-
   // Don't render anything until the app is ready
   if (!isReady || !loaded) {
     return <Slot />;
@@ -68,51 +49,19 @@ export default function RootLayout() {
 function RootLayoutNav() {
   const router = useRouter();
   const segments = useSegments();
-  const { isAuthenticated, user } = useAuthStore();
   const { 
     onboarded, 
     theme, 
-    loadFromFirestore, 
-    isLoading, 
-    error, 
-    setError,
-    syncWithFirestore
+    isLoading
   } = useUserStore();
   const systemColorScheme = useColorScheme();
   const [isNavigationReady, setIsNavigationReady] = useState(false);
-  const [dataLoaded, setDataLoaded] = useState(false);
   
   // Determine which theme to use
   const effectiveTheme = theme === 'system' ? systemColorScheme : theme;
   const statusBarStyle = effectiveTheme === 'dark' ? 'light' : 'dark';
   
-  // Load user data from Firestore when authenticated
-  useEffect(() => {
-    if (isAuthenticated && user) {
-      console.log('Loading user data from Firestore');
-      loadFromFirestore()
-        .then(() => {
-          console.log('User data loaded successfully');
-          setDataLoaded(true);
-          
-          // Sync any local changes back to Firestore
-          return syncWithFirestore();
-        })
-        .then(() => {
-          console.log('Local data synced to Firestore');
-        })
-        .catch(err => {
-          console.error('Error loading/syncing user data:', err);
-          setError(`Failed to load/sync user data: ${err.message}`);
-          setDataLoaded(true); // Still mark as loaded so we can proceed
-        });
-    } else {
-      // If not authenticated, we don't need to load data
-      setDataLoaded(true);
-    }
-  }, [isAuthenticated, user, loadFromFirestore, syncWithFirestore, setError]);
-  
-  // Handle routing based on authentication state
+  // Handle routing based on onboarding state
   useEffect(() => {
     // Wait for the next tick to ensure navigation is ready
     const timer = setTimeout(() => {
@@ -123,36 +72,29 @@ function RootLayoutNav() {
   }, []);
   
   useEffect(() => {
-    if (!isNavigationReady || !dataLoaded) return;
+    if (!isNavigationReady) return;
     
-    const inAuthGroup = segments[0] === 'auth';
     const inOnboardingGroup = segments[0] === 'onboarding';
     
     console.log('Navigation state:', { 
-      isAuthenticated, 
       onboarded, 
-      inAuthGroup, 
       inOnboardingGroup,
       segments: segments.join('/')
     });
 
-    if (!isAuthenticated && !inAuthGroup) {
-      // If not authenticated and not in auth group, redirect to auth
-      console.log('Redirecting to auth');
-      router.replace('/auth');
-    } else if (isAuthenticated && !onboarded && !inOnboardingGroup) {
-      // If authenticated but not onboarded and not in onboarding, redirect to onboarding
+    if (!onboarded && !inOnboardingGroup) {
+      // If not onboarded and not in onboarding, redirect to onboarding
       console.log('Redirecting to onboarding');
       router.replace('/onboarding');
-    } else if (isAuthenticated && onboarded && (inAuthGroup || inOnboardingGroup)) {
-      // If authenticated and onboarded but in auth or onboarding, redirect to tabs
+    } else if (onboarded && inOnboardingGroup) {
+      // If onboarded but in onboarding, redirect to tabs
       console.log('Redirecting to tabs');
       router.replace('/(tabs)');
     }
-  }, [isAuthenticated, onboarded, segments, router, isNavigationReady, dataLoaded]);
+  }, [onboarded, segments, router, isNavigationReady]);
   
   // Show loading screen while data is being loaded
-  if (isAuthenticated && isLoading && !dataLoaded) {
+  if (isLoading) {
     return <LoadingScreen message="Loading your data..." />;
   }
   
@@ -163,7 +105,6 @@ function RootLayoutNav() {
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="onboarding" options={{ headerShown: false }} />
-        <Stack.Screen name="auth" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: "modal" }} />
       </Stack>
     </SafeAreaProvider>
