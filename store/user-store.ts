@@ -221,7 +221,7 @@ export const useUserStore = create<UserState>()(
       calculateProgress: () => {
         const { profile } = get();
         
-        if (!profile) {
+        if (!profile || !profile.quitDate) {
           return {
             smokeFreeTime: { days: 0, hours: 0, minutes: 0, totalSeconds: 0 },
             cigarettesAvoided: 0,
@@ -244,12 +244,14 @@ export const useUserStore = create<UserState>()(
         
         // Calculate cigarettes avoided
         // Assuming cigarettes per day are evenly distributed throughout the day
-        const cigarettesPerSecond = profile.cigarettesPerDay / (24 * 60 * 60);
+        const cigarettesPerDay = profile.cigarettesPerDay || 20;
+        const cigarettesPerSecond = cigarettesPerDay / (24 * 60 * 60);
         const cigarettesAvoided = Math.floor(totalSeconds * cigarettesPerSecond);
         
         // Calculate money saved
         // Price per cigarette = pack price / 20 (assuming 20 cigarettes per pack)
-        const pricePerCigarette = profile.cigarettePrice / 20;
+        const cigarettePrice = profile.cigarettePrice || 10;
+        const pricePerCigarette = cigarettePrice / 20;
         const moneySaved = cigarettesAvoided * pricePerCigarette;
         
         return {
@@ -472,6 +474,7 @@ export const useUserStore = create<UserState>()(
             return {
               profile: profile || state.profile,
               diaryEntries: diaryEntries.length > 0 ? diaryEntries : state.diaryEntries,
+              cravingsHandled: profile?.cravingsHandled || state.cravingsHandled,
               isLoading: false,
               lastSynced: new Date().toISOString(),
               error: null

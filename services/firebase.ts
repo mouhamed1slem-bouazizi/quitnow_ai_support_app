@@ -77,6 +77,9 @@ export const signUp = async (email: string, password: string, displayName: strin
         name: displayName,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        goals: [],
+        achievements: [],
+        cravingsHandled: 0
       };
       
       // Save the empty profile to Firestore
@@ -144,13 +147,17 @@ export const saveUserProfile = async (userId: string, profileData: Profile): Pro
     console.log('Firebase service: saveUserProfile called for user:', userId, 'with data:', JSON.stringify(profileData));
     const userRef = doc(db, 'users', userId);
     
-    // Convert dates to Firestore timestamps if needed
+    // Ensure all required fields are present
     const firestoreData = {
       ...profileData,
       updatedAt: new Date().toISOString(),
+      // Add default values for any missing fields
+      goals: profileData.goals || [],
+      achievements: profileData.achievements || [],
+      cravingsHandled: profileData.cravingsHandled || 0
     };
     
-    await setDoc(userRef, firestoreData, { merge: true });
+    await setDoc(userRef, firestoreData);
     console.log('Firebase service: saveUserProfile successful');
   } catch (error: any) {
     console.error('Firebase service: saveUserProfile error:', error);

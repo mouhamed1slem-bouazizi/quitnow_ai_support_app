@@ -49,6 +49,9 @@ export default function OnboardingScreen() {
         currency,
         goals: [],
         achievements: [],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        cravingsHandled: 0
       };
       
       console.log('Created profile data:', JSON.stringify(profileData));
