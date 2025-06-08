@@ -27,7 +27,7 @@ export default function RootLayout() {
   const router = useRouter();
   const segments = useSegments();
   const { isAuthenticated } = useAuthStore();
-  const { onboarded } = useUserStore();
+  const { onboarded, setUserId, loadProfileFromFirestore, loadDiaryEntriesFromFirestore } = useUserStore();
 
   // Handle routing based on authentication state
   useEffect(() => {
@@ -57,19 +57,48 @@ export default function RootLayout() {
     }
   }, [isAuthenticated, onboarded, segments, router]);
 
+  // Subscribe to auth state changes and load user data when authenticated
   useEffect(() => {
-    // Subscribe to auth state changes
     console.log('Setting up auth state listener');
     const unsubscribe = subscribeToAuthChanges((user) => {
       console.log('Auth state changed in _layout, user:', user?.email || 'null');
       setUser(user);
+      
+      // If user is authenticated, set userId in user store and load data from Firestore
+      if (user) {
+        setUserId(user.uid);
+        
+        // Load user profile from Firestore
+        loadProfileFromFirestore()
+          .then(success => {
+            console.log('Profile loaded from Firestore:', success ? 'success' : 'no data found');
+            
+            // If no profile was found, we'll keep the onboarded state as is
+            // The app will redirect to onboarding if needed
+          })
+          .catch(error => {
+            console.error('Error loading profile from Firestore:', error);
+          });
+        
+        // Load diary entries from Firestore
+        loadDiaryEntriesFromFirestore()
+          .then(success => {
+            console.log('Diary entries loaded from Firestore:', success ? 'success' : 'no data found');
+          })
+          .catch(error => {
+            console.error('Error loading diary entries from Firestore:', error);
+          });
+      } else {
+        // If user is not authenticated, clear userId in user store
+        setUserId(null);
+      }
     });
 
     return () => {
       console.log('Cleaning up auth state listener');
       unsubscribe();
     };
-  }, [setUser]);
+  }, [setUser, setUserId, loadProfileFromFirestore, loadDiaryEntriesFromFirestore]);
 
   useEffect(() => {
     if (error) {

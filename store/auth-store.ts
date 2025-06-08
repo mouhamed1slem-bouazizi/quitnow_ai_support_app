@@ -2,7 +2,14 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User } from 'firebase/auth';
-import { signIn as firebaseSignIn, signUp, signOut, resetPassword, getCurrentUser } from '@/services/firebase';
+import { 
+  signIn as firebaseSignIn, 
+  signUp, 
+  signOut, 
+  resetPassword, 
+  getCurrentUser,
+  getUserProfile
+} from '@/services/firebase';
 
 interface AuthState {
   user: User | null;
@@ -11,11 +18,12 @@ interface AuthState {
   isAuthenticated: boolean;
   
   setUser: (user: User | null) => void;
-  signIn: (email: string, password: string) => Promise<User | void>;
-  signUp: (email: string, password: string, displayName: string) => Promise<User | void>;
+  signIn: (email: string, password: string) => Promise<User | null>;
+  signUp: (email: string, password: string, displayName: string) => Promise<User | null>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   clearError: () => void;
+  loadUserProfile: (userId: string) => Promise<any>;
 }
 
 // Initial state
@@ -99,6 +107,18 @@ export const useAuthStore = create<AuthState>()(
       },
       
       clearError: () => set({ error: null }),
+
+      loadUserProfile: async (userId) => {
+        console.log('Auth store: loadUserProfile called for user:', userId);
+        try {
+          const profileData = await getUserProfile(userId);
+          console.log('Auth store: loadUserProfile successful:', profileData ? 'data found' : 'no data');
+          return profileData;
+        } catch (error: any) {
+          console.error('Auth store: loadUserProfile error:', error.message);
+          throw error;
+        }
+      },
     }),
     {
       name: 'auth-storage',

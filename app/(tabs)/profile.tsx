@@ -1,17 +1,26 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Modal, Platform, Switch, useColorScheme, Pressable, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, TextInput, Modal, Platform, Switch, useColorScheme, Pressable, Alert, ActivityIndicator } from 'react-native';
 import { Stack, useRouter } from 'expo-router';
 import { useUserStore } from '@/store/user-store';
 import { useAuthStore } from '@/store/auth-store';
 import { useThemeColors } from '@/constants/colors';
-import { User, Calendar, DollarSign, Cigarette, LogOut, Save, Clock, Moon, Sun, Smartphone } from 'lucide-react-native';
+import { User, Calendar, DollarSign, Cigarette, LogOut, Save, Clock, Moon, Sun, Smartphone, RefreshCw } from 'lucide-react-native';
 import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/datetimepicker';
 
 export default function ProfileScreen() {
   const router = useRouter();
   const colors = useThemeColors();
-  const { profile, updateProfile, resetProgress, theme, setTheme } = useUserStore();
-  const { signOut, isLoading } = useAuthStore();
+  const { 
+    profile, 
+    updateProfile, 
+    resetProgress, 
+    theme, 
+    setTheme, 
+    syncProfileToFirestore, 
+    isSyncing,
+    lastSyncTime
+  } = useUserStore();
+  const { user, signOut, isLoading } = useAuthStore();
   
   const [isEditing, setIsEditing] = useState(false);
   const [editedName, setEditedName] = useState(profile?.name || "");
@@ -34,14 +43,44 @@ export default function ProfileScreen() {
   // Sign out confirmation
   const [showSignOutModal, setShowSignOutModal] = useState(false);
   
-  if (!profile) return null;
+  // Update local state when profile changes
+  useEffect(() => {
+    if (profile) {
+      setEditedName(profile.name || "");
+      setEditedCigarettesPerDay(profile.cigarettesPerDay?.toString() || '20');
+      setEditedCigarettePrice(profile.cigarettePrice?.toString() || '10');
+    }
+  }, [profile]);
   
-  const handleSaveChanges = () => {
-    updateProfile({
+  if (!profile) {
+    return (
+      <View style={[styles.loadingContainer, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[styles.loadingText, { color: colors.text }]}>Loading profile...</Text>
+      </View>
+    );
+  }
+  
+  const handleSaveChanges = async () => {
+    const updates = {
       name: editedName,
       cigarettesPerDay: parseInt(editedCigarettesPerDay, 10) || 20,
       cigarettePrice: parseFloat(editedCigarettePrice) || 10,
-    });
+    };
+    
+    updateProfile(updates);
+    
+    try {
+      // Sync changes to Firestore
+      await syncProfileToFirestore();
+    } catch (error) {
+      console.error('Error syncing profile to Firestore:', error);
+      Alert.alert(
+        'Sync Error',
+        'Your changes were saved locally but could not be synced to the cloud. Please try again later.',
+        [{ text: 'OK' }]
+      );
+    }
     
     setIsEditing(false);
   };
@@ -52,19 +91,30 @@ export default function ProfileScreen() {
     setResetQuitDate(yesterday);
   };
   
-  const confirmReset = () => {
+  const confirmReset = async () => {
     resetProgress();
     
     // Set new profile with selected quit date
-    useUserStore.getState().setProfile({
-      name: profile.name,
+    const updatedProfile = {
+      ...profile,
       quitDate: resetQuitDate.toISOString(),
-      cigarettesPerDay: profile.cigarettesPerDay,
-      cigarettePrice: profile.cigarettePrice,
-      currency: profile.currency,
       goals: [],
       achievements: [],
-    });
+    };
+    
+    useUserStore.getState().setProfile(updatedProfile);
+    
+    try {
+      // Sync changes to Firestore
+      await syncProfileToFirestore();
+    } catch (error) {
+      console.error('Error syncing reset profile to Firestore:', error);
+      Alert.alert(
+        'Sync Error',
+        'Your progress was reset locally but could not be synced to the cloud. Please try again later.',
+        [{ text: 'OK' }]
+      );
+    }
     
     setShowResetModal(false);
     router.replace('/(tabs)');
@@ -76,6 +126,20 @@ export default function ProfileScreen() {
       // After sign out, the auth store will update and the app will redirect
     } catch (error) {
       Alert.alert('Error', 'Failed to sign out. Please try again.');
+    }
+  };
+  
+  const handleSyncNow = async () => {
+    try {
+      const success = await syncProfileToFirestore();
+      if (success) {
+        Alert.alert('Success', 'Your profile has been synced to the cloud.');
+      } else {
+        Alert.alert('Sync Error', 'Failed to sync your profile. Please try again later.');
+      }
+    } catch (error) {
+      console.error('Error manually syncing profile:', error);
+      Alert.alert('Sync Error', 'Failed to sync your profile. Please try again later.');
     }
   };
   
@@ -119,6 +183,18 @@ export default function ProfileScreen() {
   
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+  
+  const formatSyncTime = (dateString: string | null) => {
+    if (!dateString) return 'Never';
+    
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
+      month: 'short',
+      day: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
     });
@@ -171,6 +247,13 @@ export default function ProfileScreen() {
               placeholder="Your name"
               placeholderTextColor={colors.inactive}
             />
+          )}
+          
+          {/* User email from Firebase */}
+          {user && (
+            <Text style={[styles.emailText, { color: colors.textSecondary }]}>
+              {user.email}
+            </Text>
           )}
         </View>
         
@@ -235,6 +318,30 @@ export default function ProfileScreen() {
               )}
             </View>
           </View>
+        </View>
+        
+        {/* Cloud Sync Status */}
+        <View style={[styles.syncCard, { backgroundColor: colors.card }]}>
+          <View style={styles.syncHeader}>
+            <Text style={[styles.syncTitle, { color: colors.text }]}>Cloud Sync</Text>
+            <TouchableOpacity 
+              style={[styles.syncButton, isSyncing && styles.syncButtonDisabled]}
+              onPress={handleSyncNow}
+              disabled={isSyncing}
+            >
+              <RefreshCw size={16} color={colors.primary} style={isSyncing ? styles.syncingIcon : undefined} />
+              <Text style={[styles.syncButtonText, { color: colors.primary }]}>
+                {isSyncing ? 'Syncing...' : 'Sync Now'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+          
+          <Text style={[styles.syncInfo, { color: colors.textSecondary }]}>
+            Last synced: {formatSyncTime(lastSyncTime)}
+          </Text>
+          <Text style={[styles.syncDescription, { color: colors.textSecondary }]}>
+            Your data is automatically synced to the cloud when you make changes.
+          </Text>
         </View>
         
         {/* Theme Selection */}
@@ -537,6 +644,15 @@ const styles = StyleSheet.create({
   content: {
     padding: 16,
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 16,
+  },
   editButton: {
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -565,6 +681,10 @@ const styles = StyleSheet.create({
   nameText: {
     fontSize: 24,
     fontWeight: '600',
+  },
+  emailText: {
+    fontSize: 14,
+    marginTop: 4,
   },
   nameInput: {
     fontSize: 24,
@@ -630,6 +750,52 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     marginVertical: 4,
+  },
+  syncCard: {
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  syncHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  syncTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  syncButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 16,
+  },
+  syncButtonDisabled: {
+    opacity: 0.5,
+  },
+  syncButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    marginLeft: 4,
+  },
+  syncingIcon: {
+    transform: [{ rotate: '45deg' }],
+  },
+  syncInfo: {
+    fontSize: 14,
+    marginBottom: 8,
+  },
+  syncDescription: {
+    fontSize: 14,
+    lineHeight: 20,
   },
   themeCard: {
     borderRadius: 16,

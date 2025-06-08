@@ -11,7 +11,7 @@ import DateTimePicker, { DateTimePickerEvent } from '@react-native-community/dat
 export default function OnboardingScreen() {
   const router = useRouter();
   const colors = useThemeColors();
-  const { setProfile, setOnboarded, theme } = useUserStore();
+  const { setProfile, setOnboarded, theme, syncProfileToFirestore } = useUserStore();
   const { user } = useAuthStore();
   
   // Set default quit date to yesterday
@@ -27,20 +27,44 @@ export default function OnboardingScreen() {
   const [step, setStep] = useState(1);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showTimePicker, setShowTimePicker] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const handleComplete = () => {
-    setProfile({
-      name,
-      quitDate: quitDate.toISOString(),
-      cigarettesPerDay: parseInt(cigarettesPerDay, 10) || 20,
-      cigarettePrice: parseFloat(cigarettePrice) || 10,
-      currency,
-      goals: [],
-      achievements: [],
-    });
+  const handleComplete = async () => {
+    setIsSubmitting(true);
     
-    setOnboarded(true);
-    router.replace('/(tabs)');
+    try {
+      // Create the profile object
+      const profileData = {
+        name,
+        quitDate: quitDate.toISOString(),
+        cigarettesPerDay: parseInt(cigarettesPerDay, 10) || 20,
+        cigarettePrice: parseFloat(cigarettePrice) || 10,
+        currency,
+        goals: [],
+        achievements: [],
+      };
+      
+      // Set the profile in local state
+      setProfile(profileData);
+      
+      // Mark as onboarded
+      setOnboarded(true);
+      
+      // Sync to Firestore
+      await syncProfileToFirestore();
+      
+      // Navigate to the main app
+      router.replace('/(tabs)');
+    } catch (error) {
+      console.error('Error completing onboarding:', error);
+      Alert.alert(
+        'Error',
+        'There was a problem saving your profile. Please try again.',
+        [{ text: 'OK' }]
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
   
   const nextStep = () => {
@@ -303,10 +327,18 @@ export default function OnboardingScreen() {
                   <Text style={[styles.backButtonText, { color: colors.primary }]}>Back</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                  style={[styles.button, styles.buttonSmall, { backgroundColor: colors.primary }]}
+                  style={[
+                    styles.button, 
+                    styles.buttonSmall, 
+                    { backgroundColor: colors.primary },
+                    isSubmitting && styles.buttonDisabled
+                  ]}
                   onPress={handleComplete}
+                  disabled={isSubmitting}
                 >
-                  <Text style={styles.buttonText}>Let's Begin</Text>
+                  <Text style={styles.buttonText}>
+                    {isSubmitting ? 'Saving...' : 'Let\'s Begin'}
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
