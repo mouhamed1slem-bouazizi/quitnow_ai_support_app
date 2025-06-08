@@ -1,4 +1,6 @@
-module.exports = {
+import 'dotenv/config';
+
+export default {
   expo: {
     name: "QuitSmoking",
     slug: "quit-smoking",

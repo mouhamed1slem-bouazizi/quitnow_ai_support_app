@@ -14,15 +14,27 @@ import Constants from 'expo-constants';
 
 // Get Firebase configuration from environment variables
 const firebaseConfig = {
-  apiKey: Constants.expoConfig?.extra?.firebaseApiKey,
-  authDomain: Constants.expoConfig?.extra?.firebaseAuthDomain,
-  databaseURL: Constants.expoConfig?.extra?.firebaseDatabaseURL,
-  projectId: Constants.expoConfig?.extra?.firebaseProjectId,
-  storageBucket: Constants.expoConfig?.extra?.firebaseStorageBucket,
-  messagingSenderId: Constants.expoConfig?.extra?.firebaseMessagingSenderId,
-  appId: Constants.expoConfig?.extra?.firebaseAppId,
-  measurementId: Constants.expoConfig?.extra?.firebaseMeasurementId
+  apiKey: Constants.expoConfig?.extra?.firebaseApiKey || "",
+  authDomain: Constants.expoConfig?.extra?.firebaseAuthDomain || "",
+  databaseURL: Constants.expoConfig?.extra?.firebaseDatabaseURL || "",
+  projectId: Constants.expoConfig?.extra?.firebaseProjectId || "",
+  storageBucket: Constants.expoConfig?.extra?.firebaseStorageBucket || "",
+  messagingSenderId: Constants.expoConfig?.extra?.firebaseMessagingSenderId || "",
+  appId: Constants.expoConfig?.extra?.firebaseAppId || "",
+  measurementId: Constants.expoConfig?.extra?.firebaseMeasurementId || ""
 };
+
+// Log the config for debugging (remove in production)
+console.log("Firebase config:", {
+  apiKey: firebaseConfig.apiKey ? "Set" : "Not set",
+  authDomain: firebaseConfig.authDomain ? "Set" : "Not set",
+  databaseURL: firebaseConfig.databaseURL ? "Set" : "Not set",
+  projectId: firebaseConfig.projectId ? "Set" : "Not set",
+  storageBucket: firebaseConfig.storageBucket ? "Set" : "Not set",
+  messagingSenderId: firebaseConfig.messagingSenderId ? "Set" : "Not set",
+  appId: firebaseConfig.appId ? "Set" : "Not set",
+  measurementId: firebaseConfig.measurementId ? "Set" : "Not set"
+});
 
 // Initialize Firebase only if config is valid
 const app = initializeApp(firebaseConfig);
