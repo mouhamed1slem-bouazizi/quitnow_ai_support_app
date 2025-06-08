@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { User } from 'firebase/auth';
-import { signIn, signUp, signOut, resetPassword, getCurrentUser } from '@/services/firebase';
+import { signIn as firebaseSignIn, signUp, signOut, resetPassword, getCurrentUser } from '@/services/firebase';
 
 interface AuthState {
   user: User | null;
@@ -31,51 +31,68 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       ...initialState,
       
-      setUser: (user) => set({ 
-        user, 
-        isAuthenticated: !!user,
-        error: null
-      }),
+      setUser: (user) => {
+        console.log('Setting user in auth store:', user ? user.email : 'null');
+        set({ 
+          user, 
+          isAuthenticated: !!user,
+          error: null
+        });
+      },
       
       signIn: async (email, password) => {
+        console.log('Auth store: signIn called with email:', email);
         set({ isLoading: true, error: null });
         try {
-          const user = await signIn(email, password);
+          const user = await firebaseSignIn(email, password);
+          console.log('Auth store: signIn successful, user:', user?.email);
           set({ user, isAuthenticated: true, isLoading: false });
+          return user;
         } catch (error: any) {
+          console.error('Auth store: signIn error:', error.message);
           set({ error: error.message, isLoading: false });
           throw error;
         }
       },
       
       signUp: async (email, password, displayName) => {
+        console.log('Auth store: signUp called with email:', email);
         set({ isLoading: true, error: null });
         try {
           const user = await signUp(email, password, displayName);
+          console.log('Auth store: signUp successful, user:', user?.email);
           set({ user, isAuthenticated: true, isLoading: false });
+          return user;
         } catch (error: any) {
+          console.error('Auth store: signUp error:', error.message);
           set({ error: error.message, isLoading: false });
           throw error;
         }
       },
       
       signOut: async () => {
+        console.log('Auth store: signOut called');
         set({ isLoading: true, error: null });
         try {
           await signOut();
+          console.log('Auth store: signOut successful');
           set({ user: null, isAuthenticated: false, isLoading: false });
         } catch (error: any) {
+          console.error('Auth store: signOut error:', error.message);
           set({ error: error.message, isLoading: false });
           throw error;
         }
       },
       
       resetPassword: async (email) => {
+        console.log('Auth store: resetPassword called with email:', email);
         set({ isLoading: true, error: null });
         try {
           await resetPassword(email);
+          console.log('Auth store: resetPassword successful');
           set({ isLoading: false });
         } catch (error: any) {
+          console.error('Auth store: resetPassword error:', error.message);
           set({ error: error.message, isLoading: false });
           throw error;
         }
@@ -92,6 +109,9 @@ export const useAuthStore = create<AuthState>()(
         isAuthenticated: state.isAuthenticated
       }),
       version: 1,
+      onRehydrateStorage: () => (state) => {
+        console.log('Auth store rehydrated:', state?.isAuthenticated ? 'authenticated' : 'not authenticated');
+      },
       migrate: (persistedState: any, version) => {
         // If we're at the current version, just return the state
         if (version === 1) {

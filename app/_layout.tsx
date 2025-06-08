@@ -1,6 +1,6 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFonts } from "expo-font";
-import { Stack } from "expo-router";
+import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import { StatusBar } from 'expo-status-bar';
@@ -24,19 +24,56 @@ export default function RootLayout() {
   });
   
   const setUser = useAuthStore(state => state.setUser);
+  const router = useRouter();
+  const segments = useSegments();
+  const { isAuthenticated } = useAuthStore();
+  const { onboarded } = useUserStore();
+
+  // Handle routing based on authentication state
+  useEffect(() => {
+    const inAuthGroup = segments[0] === 'auth';
+    const inOnboardingGroup = segments[0] === 'onboarding';
+    
+    console.log('Navigation state:', { 
+      isAuthenticated, 
+      onboarded, 
+      inAuthGroup, 
+      inOnboardingGroup,
+      segments: segments.join('/')
+    });
+
+    if (!isAuthenticated && !inAuthGroup) {
+      // If not authenticated and not in auth group, redirect to auth
+      console.log('Redirecting to auth');
+      router.replace('/auth');
+    } else if (isAuthenticated && !onboarded && !inOnboardingGroup) {
+      // If authenticated but not onboarded and not in onboarding, redirect to onboarding
+      console.log('Redirecting to onboarding');
+      router.replace('/onboarding');
+    } else if (isAuthenticated && onboarded && (inAuthGroup || inOnboardingGroup)) {
+      // If authenticated and onboarded but in auth or onboarding, redirect to tabs
+      console.log('Redirecting to tabs');
+      router.replace('/(tabs)');
+    }
+  }, [isAuthenticated, onboarded, segments, router]);
 
   useEffect(() => {
     // Subscribe to auth state changes
+    console.log('Setting up auth state listener');
     const unsubscribe = subscribeToAuthChanges((user) => {
+      console.log('Auth state changed in _layout, user:', user?.email || 'null');
       setUser(user);
     });
 
-    return () => unsubscribe();
+    return () => {
+      console.log('Cleaning up auth state listener');
+      unsubscribe();
+    };
   }, [setUser]);
 
   useEffect(() => {
     if (error) {
-      console.error(error);
+      console.error('Font loading error:', error);
       throw error;
     }
   }, [error]);

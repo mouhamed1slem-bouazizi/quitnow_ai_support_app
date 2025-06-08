@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   View, 
   Text, 
@@ -20,25 +20,44 @@ import { Mail, Lock, LogIn } from 'lucide-react-native';
 export default function SignInScreen() {
   const router = useRouter();
   const colors = useThemeColors();
-  const { signIn, isLoading, error, clearError } = useAuthStore();
+  const { signIn, isLoading, error, clearError, isAuthenticated } = useAuthStore();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [localError, setLocalError] = useState<string | null>(null);
+  
+  // Monitor authentication state and redirect when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      console.log('User is authenticated, redirecting to home');
+      router.replace('/(tabs)');
+    }
+  }, [isAuthenticated, router]);
   
   const handleSignIn = async () => {
+    // Clear any previous errors
+    clearError();
+    setLocalError(null);
+    
     if (!email.trim() || !password.trim()) {
-      Alert.alert('Error', 'Please enter both email and password');
+      setLocalError('Please enter both email and password');
       return;
     }
     
     try {
+      console.log('Attempting to sign in with:', email);
       await signIn(email, password);
-      // After successful sign in, the auth store will update and the app will redirect
+      console.log('Sign in successful');
+      // The useEffect above will handle redirection
     } catch (error: any) {
-      // Error is already handled in the auth store
-      console.log('Sign in error:', error.message);
+      console.error('Sign in error:', error.message);
+      // Local error handling for UI feedback
+      setLocalError(error.message || 'Failed to sign in. Please try again.');
     }
   };
+  
+  // Display either the store error or local error
+  const displayError = error || localError;
   
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -57,10 +76,16 @@ export default function SignInScreen() {
             </Text>
           </View>
           
-          {error && (
+          {displayError && (
             <View style={[styles.errorContainer, { backgroundColor: `${colors.danger}20` }]}>
-              <Text style={[styles.errorText, { color: colors.danger }]}>{error}</Text>
-              <TouchableOpacity onPress={clearError} style={styles.dismissButton}>
+              <Text style={[styles.errorText, { color: colors.danger }]}>{displayError}</Text>
+              <TouchableOpacity 
+                onPress={() => {
+                  clearError();
+                  setLocalError(null);
+                }} 
+                style={styles.dismissButton}
+              >
                 <Text style={[styles.dismissText, { color: colors.danger }]}>Dismiss</Text>
               </TouchableOpacity>
             </View>
@@ -86,6 +111,7 @@ export default function SignInScreen() {
                 onChangeText={setEmail}
                 autoCapitalize="none"
                 keyboardType="email-address"
+                testID="email-input"
               />
             </View>
             
@@ -107,6 +133,7 @@ export default function SignInScreen() {
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry
+                testID="password-input"
               />
             </View>
             
@@ -126,6 +153,7 @@ export default function SignInScreen() {
               ]}
               onPress={handleSignIn}
               disabled={isLoading}
+              testID="sign-in-button"
             >
               {isLoading ? (
                 <ActivityIndicator color="white" />
