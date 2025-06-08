@@ -34,7 +34,7 @@ import { DiaryEntry, MoodType, Profile } from '@/types/user';
 // Firebase configuration
 // IMPORTANT: In production, these should come from environment variables
 const firebaseConfig = {
-  apiKey: "AIzaSyB_t9_0fUlS9AbIEuIyoJB-nhIeUTviu8Y",
+  apiKey: "AIzaSyB_t9_0fUlS9AbIEuIyoJB-nhIEUTviu8Y",
   authDomain: "app-d7397.firebaseapp.com",
   databaseURL: "https://app-d7397-default-rtdb.firebaseio.com",
   projectId: "app-d7397",
@@ -220,11 +220,12 @@ export const saveUserSettings = async (userId: string, settings: { theme: string
   }
 };
 
-// Diary entries functions
+// Diary entries functions - UPDATED to use 'journalEntries' collection to match Firestore rules
 export const saveDiaryEntry = async (userId: string, entry: DiaryEntry): Promise<string> => {
   try {
     console.log('Firebase service: saveDiaryEntry called for user:', userId, 'with entry:', JSON.stringify(entry));
-    const entriesRef = collection(db, 'users', userId, 'diaryEntries');
+    // Changed from 'diaryEntries' to 'journalEntries' to match Firestore rules
+    const entriesRef = collection(db, 'users', userId, 'journalEntries');
     
     // Convert entry to Firestore format
     const firestoreEntry = {
@@ -255,7 +256,8 @@ export const saveDiaryEntry = async (userId: string, entry: DiaryEntry): Promise
 export const getDiaryEntries = async (userId: string): Promise<DiaryEntry[]> => {
   try {
     console.log('Firebase service: getDiaryEntries called for user:', userId);
-    const entriesRef = collection(db, 'users', userId, 'diaryEntries');
+    // Changed from 'diaryEntries' to 'journalEntries' to match Firestore rules
+    const entriesRef = collection(db, 'users', userId, 'journalEntries');
     const q = query(entriesRef, orderBy('timestamp', 'desc'));
     const querySnapshot = await getDocs(q);
     
@@ -281,7 +283,8 @@ export const getDiaryEntries = async (userId: string): Promise<DiaryEntry[]> => 
 export const deleteDiaryEntry = async (userId: string, entryId: string): Promise<void> => {
   try {
     console.log('Firebase service: deleteDiaryEntry called for user:', userId, 'entry:', entryId);
-    const entryRef = doc(db, 'users', userId, 'diaryEntries', entryId);
+    // Changed from 'diaryEntries' to 'journalEntries' to match Firestore rules
+    const entryRef = doc(db, 'users', userId, 'journalEntries', entryId);
     await deleteDoc(entryRef);
     console.log('Firebase service: deleteDiaryEntry successful');
   } catch (error: any) {
