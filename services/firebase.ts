@@ -12,7 +12,7 @@ import {
 } from 'firebase/auth';
 import { getFirestore, Firestore } from 'firebase/firestore';
 
-// Firebase configuration - hardcoded for now to fix the issue
+// Firebase configuration
 // IMPORTANT: In production, these should come from environment variables
 const firebaseConfig = {
   apiKey: "AIzaSyB_t9_0fUlS9AbIEuIyoJB-nhIeUTviu8Y",

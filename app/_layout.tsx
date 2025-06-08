@@ -1,8 +1,8 @@
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useFonts } from "expo-font";
-import { Stack, useRouter, useSegments } from "expo-router";
+import { Slot, Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import AchievementChecker from '@/components/AchievementChecker';
@@ -24,14 +24,71 @@ export default function RootLayout() {
   });
   
   const setUser = useAuthStore(state => state.setUser);
+  const [isReady, setIsReady] = useState(false);
+  
+  // Handle font loading
+  useEffect(() => {
+    if (error) {
+      console.error('Font loading error:', error);
+    }
+    
+    if (loaded) {
+      // Only hide splash screen when fonts are loaded
+      SplashScreen.hideAsync().catch(console.error);
+      // Mark the app as ready after fonts are loaded
+      setIsReady(true);
+    }
+  }, [loaded, error]);
+
+  // Set up auth state listener
+  useEffect(() => {
+    if (!loaded) return;
+    
+    console.log('Setting up auth state listener');
+    const unsubscribe = subscribeToAuthChanges((user) => {
+      console.log('Auth state changed in _layout, user:', user?.email || 'null');
+      setUser(user);
+    });
+
+    return () => {
+      console.log('Cleaning up auth state listener');
+      unsubscribe();
+    };
+  }, [setUser, loaded]);
+
+  // Don't render anything until the app is ready
+  if (!isReady || !loaded) {
+    return <Slot />;
+  }
+
+  return <RootLayoutNav />;
+}
+
+function RootLayoutNav() {
   const router = useRouter();
   const segments = useSegments();
   const { isAuthenticated } = useAuthStore();
   const { onboarded } = useUserStore();
-
+  const { theme } = useUserStore();
+  const systemColorScheme = useColorScheme();
+  const [isNavigationReady, setIsNavigationReady] = useState(false);
+  
+  // Determine which theme to use
+  const effectiveTheme = theme === 'system' ? systemColorScheme : theme;
+  const statusBarStyle = effectiveTheme === 'dark' ? 'light' : 'dark';
+  
   // Handle routing based on authentication state
   useEffect(() => {
-    if (!loaded) return;
+    // Wait for the next tick to ensure navigation is ready
+    const timer = setTimeout(() => {
+      setIsNavigationReady(true);
+    }, 0);
+    
+    return () => clearTimeout(timer);
+  }, []);
+  
+  useEffect(() => {
+    if (!isNavigationReady) return;
     
     const inAuthGroup = segments[0] === 'auth';
     const inOnboardingGroup = segments[0] === 'onboarding';
@@ -57,51 +114,7 @@ export default function RootLayout() {
       console.log('Redirecting to tabs');
       router.replace('/(tabs)');
     }
-  }, [isAuthenticated, onboarded, segments, router, loaded]);
-
-  useEffect(() => {
-    if (!loaded) return;
-    
-    // Subscribe to auth state changes
-    console.log('Setting up auth state listener');
-    const unsubscribe = subscribeToAuthChanges((user) => {
-      console.log('Auth state changed in _layout, user:', user?.email || 'null');
-      setUser(user);
-    });
-
-    return () => {
-      console.log('Cleaning up auth state listener');
-      unsubscribe();
-    };
-  }, [setUser, loaded]);
-
-  useEffect(() => {
-    if (error) {
-      console.error('Font loading error:', error);
-      throw error;
-    }
-  }, [error]);
-
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
-
-  return <RootLayoutNav />;
-}
-
-function RootLayoutNav() {
-  const { theme } = useUserStore();
-  const systemColorScheme = useColorScheme();
-  
-  // Determine which theme to use
-  const effectiveTheme = theme === 'system' ? systemColorScheme : theme;
-  const statusBarStyle = effectiveTheme === 'dark' ? 'light' : 'dark';
+  }, [isAuthenticated, onboarded, segments, router, isNavigationReady]);
   
   return (
     <SafeAreaProvider>

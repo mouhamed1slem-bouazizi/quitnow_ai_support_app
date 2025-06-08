@@ -11,8 +11,8 @@ interface AuthState {
   isAuthenticated: boolean;
   
   setUser: (user: User | null) => void;
-  signIn: (email: string, password: string) => Promise<User | void>;
-  signUp: (email: string, password: string, displayName: string) => Promise<User | void>;
+  signIn: (email: string, password: string) => Promise<User | null>;
+  signUp: (email: string, password: string, displayName: string) => Promise<User | null>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   clearError: () => void;
@@ -51,7 +51,7 @@ export const useAuthStore = create<AuthState>()(
         } catch (error: any) {
           console.error('Auth store: signIn error:', error.message);
           set({ error: error.message, isLoading: false });
-          throw error;
+          return null;
         }
       },
       
@@ -66,7 +66,7 @@ export const useAuthStore = create<AuthState>()(
         } catch (error: any) {
           console.error('Auth store: signUp error:', error.message);
           set({ error: error.message, isLoading: false });
-          throw error;
+          return null;
         }
       },
       
@@ -80,7 +80,6 @@ export const useAuthStore = create<AuthState>()(
         } catch (error: any) {
           console.error('Auth store: signOut error:', error.message);
           set({ error: error.message, isLoading: false });
-          throw error;
         }
       },
       
@@ -94,7 +93,6 @@ export const useAuthStore = create<AuthState>()(
         } catch (error: any) {
           console.error('Auth store: resetPassword error:', error.message);
           set({ error: error.message, isLoading: false });
-          throw error;
         }
       },
       
