@@ -75,7 +75,8 @@ function RootLayoutNav() {
     loadFromFirestore, 
     isLoading, 
     error, 
-    setError 
+    setError,
+    syncWithFirestore
   } = useUserStore();
   const systemColorScheme = useColorScheme();
   const [isNavigationReady, setIsNavigationReady] = useState(false);
@@ -93,17 +94,23 @@ function RootLayoutNav() {
         .then(() => {
           console.log('User data loaded successfully');
           setDataLoaded(true);
+          
+          // Sync any local changes back to Firestore
+          return syncWithFirestore();
+        })
+        .then(() => {
+          console.log('Local data synced to Firestore');
         })
         .catch(err => {
-          console.error('Error loading user data:', err);
-          setError(`Failed to load user data: ${err.message}`);
+          console.error('Error loading/syncing user data:', err);
+          setError(`Failed to load/sync user data: ${err.message}`);
           setDataLoaded(true); // Still mark as loaded so we can proceed
         });
     } else {
       // If not authenticated, we don't need to load data
       setDataLoaded(true);
     }
-  }, [isAuthenticated, user, loadFromFirestore, setError]);
+  }, [isAuthenticated, user, loadFromFirestore, syncWithFirestore, setError]);
   
   // Handle routing based on authentication state
   useEffect(() => {

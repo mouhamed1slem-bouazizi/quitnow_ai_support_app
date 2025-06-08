@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Modal, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, KeyboardAvoidingView, Platform, Alert, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useUserStore } from '@/store/user-store';
 import { useAuthStore } from '@/store/auth-store';
@@ -38,6 +38,8 @@ export default function OnboardingScreen() {
     setIsSubmitting(true);
     
     try {
+      console.log('Starting onboarding completion process');
+      
       // Create the profile object
       const profileData = {
         name,
@@ -49,22 +51,29 @@ export default function OnboardingScreen() {
         achievements: [],
       };
       
-      // Set the profile in the store
-      setProfile(profileData);
+      console.log('Created profile data:', JSON.stringify(profileData));
+      
+      // Set the profile in the store and save to Firestore
+      await setProfile(profileData);
+      console.log('Profile set in store');
       
       // Mark as onboarded
       setOnboarded(true);
+      console.log('Marked as onboarded');
       
-      // Sync with Firestore
+      // Sync with Firestore to ensure all data is saved
+      console.log('Syncing with Firestore...');
       await syncWithFirestore();
+      console.log('Sync with Firestore complete');
       
       // Navigate to the main app
+      console.log('Navigating to main app');
       router.replace('/(tabs)');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error during onboarding completion:', error);
       Alert.alert(
         'Error',
-        'There was a problem saving your profile. Please try again.'
+        `There was a problem saving your profile: ${error.message}. Please try again.`
       );
     } finally {
       setIsSubmitting(false);

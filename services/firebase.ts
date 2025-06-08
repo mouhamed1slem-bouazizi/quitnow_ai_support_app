@@ -71,6 +71,17 @@ export const signUp = async (email: string, password: string, displayName: strin
         displayName: displayName
       });
       console.log('Firebase service: signUp successful, user:', userCredential.user.email);
+      
+      // Create an empty profile document for the user
+      const emptyProfile: Partial<Profile> = {
+        name: displayName,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      
+      // Save the empty profile to Firestore
+      await setDoc(doc(db, 'users', userCredential.user.uid), emptyProfile);
+      console.log('Firebase service: Created empty profile document for new user');
     }
     return userCredential.user;
   } catch (error: any) {
@@ -130,14 +141,13 @@ export const subscribeToAuthChanges = (callback: (user: User | null) => void) =>
 // Firestore functions for user data
 export const saveUserProfile = async (userId: string, profileData: Profile): Promise<void> => {
   try {
-    console.log('Firebase service: saveUserProfile called for user:', userId);
+    console.log('Firebase service: saveUserProfile called for user:', userId, 'with data:', JSON.stringify(profileData));
     const userRef = doc(db, 'users', userId);
     
-    // Convert dates to Firestore timestamps
+    // Convert dates to Firestore timestamps if needed
     const firestoreData = {
       ...profileData,
-      quitDate: profileData.quitDate, // Keep as ISO string for compatibility
-      updatedAt: serverTimestamp()
+      updatedAt: new Date().toISOString(),
     };
     
     await setDoc(userRef, firestoreData, { merge: true });
@@ -156,7 +166,7 @@ export const getUserProfile = async (userId: string): Promise<Profile | null> =>
     
     if (userDoc.exists()) {
       const userData = userDoc.data() as Profile;
-      console.log('Firebase service: getUserProfile successful');
+      console.log('Firebase service: getUserProfile successful, data:', JSON.stringify(userData));
       return userData;
     } else {
       console.log('Firebase service: getUserProfile - no profile found');
@@ -170,13 +180,13 @@ export const getUserProfile = async (userId: string): Promise<Profile | null> =>
 
 export const updateUserProfile = async (userId: string, updates: Partial<Profile>): Promise<void> => {
   try {
-    console.log('Firebase service: updateUserProfile called for user:', userId);
+    console.log('Firebase service: updateUserProfile called for user:', userId, 'with updates:', JSON.stringify(updates));
     const userRef = doc(db, 'users', userId);
     
     // Add updatedAt timestamp
     const updatedData = {
       ...updates,
-      updatedAt: serverTimestamp()
+      updatedAt: new Date().toISOString()
     };
     
     await updateDoc(userRef, updatedData);
@@ -189,12 +199,12 @@ export const updateUserProfile = async (userId: string, updates: Partial<Profile
 
 export const saveUserSettings = async (userId: string, settings: { theme: string, onboarded: boolean }): Promise<void> => {
   try {
-    console.log('Firebase service: saveUserSettings called for user:', userId);
+    console.log('Firebase service: saveUserSettings called for user:', userId, 'with settings:', JSON.stringify(settings));
     const userRef = doc(db, 'users', userId);
     
     await updateDoc(userRef, {
       settings,
-      updatedAt: serverTimestamp()
+      updatedAt: new Date().toISOString()
     });
     console.log('Firebase service: saveUserSettings successful');
   } catch (error: any) {
@@ -206,7 +216,7 @@ export const saveUserSettings = async (userId: string, settings: { theme: string
 // Diary entries functions
 export const saveDiaryEntry = async (userId: string, entry: DiaryEntry): Promise<string> => {
   try {
-    console.log('Firebase service: saveDiaryEntry called for user:', userId);
+    console.log('Firebase service: saveDiaryEntry called for user:', userId, 'with entry:', JSON.stringify(entry));
     const entriesRef = collection(db, 'users', userId, 'diaryEntries');
     
     // Convert entry to Firestore format
@@ -214,7 +224,7 @@ export const saveDiaryEntry = async (userId: string, entry: DiaryEntry): Promise
       content: entry.content,
       mood: entry.mood,
       timestamp: entry.timestamp, // Keep as ISO string for compatibility
-      createdAt: serverTimestamp()
+      createdAt: new Date().toISOString()
     };
     
     // If entry has an ID, use it as the document ID
@@ -276,12 +286,12 @@ export const deleteDiaryEntry = async (userId: string, entryId: string): Promise
 // Cravings counter
 export const updateCravingsHandled = async (userId: string, count: number): Promise<void> => {
   try {
-    console.log('Firebase service: updateCravingsHandled called for user:', userId);
+    console.log('Firebase service: updateCravingsHandled called for user:', userId, 'count:', count);
     const userRef = doc(db, 'users', userId);
     
     await updateDoc(userRef, {
       cravingsHandled: count,
-      updatedAt: serverTimestamp()
+      updatedAt: new Date().toISOString()
     });
     console.log('Firebase service: updateCravingsHandled successful');
   } catch (error: any) {
