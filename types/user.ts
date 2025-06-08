@@ -17,16 +17,3 @@ export interface Profile {
     onboarded: boolean;
   };
 }
-
-export interface DiaryEntry {
-  id: string;
-  timestamp: string;
-  content: string;
-  mood: MoodType;
-}
-
-export interface MoodRecord {
-  id: string;
-  timestamp: string;
-  type: MoodType;
-}

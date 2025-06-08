@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { 
   getAuth, 
   createUserWithEmailAndPassword, 
@@ -44,14 +44,20 @@ const firebaseConfig = {
   measurementId: "G-20JJF8G8CD"
 };
 
-// Initialize Firebase
+// Initialize Firebase - Check if app is already initialized to prevent duplicate app error
 let app;
 let auth: Auth;
 let db: Firestore;
 
 try {
-  console.log('Initializing Firebase with config:', Object.keys(firebaseConfig));
-  app = initializeApp(firebaseConfig);
+  console.log('Checking if Firebase app is already initialized');
+  if (getApps().length === 0) {
+    console.log('Initializing Firebase with config:', Object.keys(firebaseConfig));
+    app = initializeApp(firebaseConfig);
+  } else {
+    console.log('Firebase app already initialized, getting existing app');
+    app = getApp();
+  }
   auth = getAuth(app);
   db = getFirestore(app);
   console.log('Firebase initialized successfully');
@@ -73,7 +79,7 @@ export const signUp = async (email: string, password: string, displayName: strin
       console.log('Firebase service: signUp successful, user:', userCredential.user.email);
       
       // Create an empty profile document for the user
-      const emptyProfile: Partial<Profile> = {
+      const emptyProfile: Profile = {
         name: displayName,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
@@ -220,11 +226,11 @@ export const saveUserSettings = async (userId: string, settings: { theme: string
   }
 };
 
-// Diary entries functions - UPDATED to use 'journalEntries' collection to match Firestore rules
+// Diary entries functions - USING 'journalEntries' collection to match Firestore rules
 export const saveDiaryEntry = async (userId: string, entry: DiaryEntry): Promise<string> => {
   try {
     console.log('Firebase service: saveDiaryEntry called for user:', userId, 'with entry:', JSON.stringify(entry));
-    // Changed from 'diaryEntries' to 'journalEntries' to match Firestore rules
+    // Using 'journalEntries' to match Firestore rules
     const entriesRef = collection(db, 'users', userId, 'journalEntries');
     
     // Convert entry to Firestore format
@@ -256,7 +262,7 @@ export const saveDiaryEntry = async (userId: string, entry: DiaryEntry): Promise
 export const getDiaryEntries = async (userId: string): Promise<DiaryEntry[]> => {
   try {
     console.log('Firebase service: getDiaryEntries called for user:', userId);
-    // Changed from 'diaryEntries' to 'journalEntries' to match Firestore rules
+    // Using 'journalEntries' to match Firestore rules
     const entriesRef = collection(db, 'users', userId, 'journalEntries');
     const q = query(entriesRef, orderBy('timestamp', 'desc'));
     const querySnapshot = await getDocs(q);
@@ -283,7 +289,7 @@ export const getDiaryEntries = async (userId: string): Promise<DiaryEntry[]> => 
 export const deleteDiaryEntry = async (userId: string, entryId: string): Promise<void> => {
   try {
     console.log('Firebase service: deleteDiaryEntry called for user:', userId, 'entry:', entryId);
-    // Changed from 'diaryEntries' to 'journalEntries' to match Firestore rules
+    // Using 'journalEntries' to match Firestore rules
     const entryRef = doc(db, 'users', userId, 'journalEntries', entryId);
     await deleteDoc(entryRef);
     console.log('Firebase service: deleteDiaryEntry successful');
