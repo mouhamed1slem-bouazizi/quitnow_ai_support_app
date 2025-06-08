@@ -26,21 +26,26 @@ export default function SignUpScreen() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [localError, setLocalError] = useState<string | null>(null);
   
   const handleSignUp = async () => {
+    // Clear any previous errors
+    clearError();
+    setLocalError(null);
+    
     // Validate inputs
     if (!name.trim() || !email.trim() || !password.trim() || !confirmPassword.trim()) {
-      Alert.alert('Error', 'Please fill in all fields');
+      setLocalError('Please fill in all fields');
       return;
     }
     
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+      setLocalError('Passwords do not match');
       return;
     }
     
     if (password.length < 6) {
-      Alert.alert('Error', 'Password must be at least 6 characters');
+      setLocalError('Password must be at least 6 characters');
       return;
     }
     
@@ -52,8 +57,12 @@ export default function SignUpScreen() {
     } catch (error: any) {
       // Error is already handled in the auth store
       console.log('Sign up error:', error.message);
+      setLocalError(error.message || 'Failed to sign up. Please try again.');
     }
   };
+  
+  // Display either the store error or local error
+  const displayError = error || localError;
   
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -72,10 +81,16 @@ export default function SignUpScreen() {
             </Text>
           </View>
           
-          {error && (
+          {displayError && (
             <View style={[styles.errorContainer, { backgroundColor: `${colors.danger}20` }]}>
-              <Text style={[styles.errorText, { color: colors.danger }]}>{error}</Text>
-              <TouchableOpacity onPress={clearError} style={styles.dismissButton}>
+              <Text style={[styles.errorText, { color: colors.danger }]}>{displayError}</Text>
+              <TouchableOpacity 
+                onPress={() => {
+                  clearError();
+                  setLocalError(null);
+                }} 
+                style={styles.dismissButton}
+              >
                 <Text style={[styles.dismissText, { color: colors.danger }]}>Dismiss</Text>
               </TouchableOpacity>
             </View>

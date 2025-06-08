@@ -222,12 +222,12 @@ export const saveUserSettings = async (userId: string, settings: { theme: string
   }
 };
 
-// Diary entries functions - USING 'journalEntries' collection to match Firestore rules
+// Diary entries functions
 export const saveDiaryEntry = async (userId: string, entry: DiaryEntry): Promise<string> => {
   try {
     console.log('Firebase service: saveDiaryEntry called for user:', userId, 'with entry:', JSON.stringify(entry));
-    // Using 'journalEntries' to match Firestore rules
-    const entriesRef = collection(db, 'users', userId, 'journalEntries');
+    // Create a diary entries collection for the user
+    const entriesRef = collection(db, 'users', userId, 'diaryEntries');
     
     // Convert entry to Firestore format
     const firestoreEntry = {
@@ -258,8 +258,8 @@ export const saveDiaryEntry = async (userId: string, entry: DiaryEntry): Promise
 export const getDiaryEntries = async (userId: string): Promise<DiaryEntry[]> => {
   try {
     console.log('Firebase service: getDiaryEntries called for user:', userId);
-    // Using 'journalEntries' to match Firestore rules
-    const entriesRef = collection(db, 'users', userId, 'journalEntries');
+    // Get diary entries from the user's collection
+    const entriesRef = collection(db, 'users', userId, 'diaryEntries');
     const q = query(entriesRef, orderBy('timestamp', 'desc'));
     const querySnapshot = await getDocs(q);
     
@@ -285,8 +285,7 @@ export const getDiaryEntries = async (userId: string): Promise<DiaryEntry[]> => 
 export const deleteDiaryEntry = async (userId: string, entryId: string): Promise<void> => {
   try {
     console.log('Firebase service: deleteDiaryEntry called for user:', userId, 'entry:', entryId);
-    // Using 'journalEntries' to match Firestore rules
-    const entryRef = doc(db, 'users', userId, 'journalEntries', entryId);
+    const entryRef = doc(db, 'users', userId, 'diaryEntries', entryId);
     await deleteDoc(entryRef);
     console.log('Firebase service: deleteDiaryEntry successful');
   } catch (error: any) {

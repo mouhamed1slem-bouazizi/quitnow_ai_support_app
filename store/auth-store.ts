@@ -51,7 +51,7 @@ export const useAuthStore = create<AuthState>()(
         } catch (error: any) {
           console.error('Auth store: signIn error:', error.message);
           set({ error: error.message, isLoading: false });
-          return null;
+          throw error;
         }
       },
       
@@ -66,7 +66,7 @@ export const useAuthStore = create<AuthState>()(
         } catch (error: any) {
           console.error('Auth store: signUp error:', error.message);
           set({ error: error.message, isLoading: false });
-          return null;
+          throw error;
         }
       },
       
@@ -80,6 +80,7 @@ export const useAuthStore = create<AuthState>()(
         } catch (error: any) {
           console.error('Auth store: signOut error:', error.message);
           set({ error: error.message, isLoading: false });
+          throw error;
         }
       },
       
@@ -93,6 +94,7 @@ export const useAuthStore = create<AuthState>()(
         } catch (error: any) {
           console.error('Auth store: resetPassword error:', error.message);
           set({ error: error.message, isLoading: false });
+          throw error;
         }
       },
       
